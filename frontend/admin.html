@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>O'Market — Espace Gestion Protégé</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <div class="brand">
+        <span class="brand-badge">O'M</span>
+        <div>
+          <h1>O'Market — Gestion &amp; Logistique</h1>
+          <p class="subtitle">Catalogue, prix, promotions, commandes &amp; livreurs</p>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <button id="admin-lock-btn" class="btn btn-secondary hidden" type="button">Verrouiller la session</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container main-layout">
+    <div id="admin-alert" class="alert hidden" role="alert"></div>
+
+    <!-- Écran de verrouillage / authentification opérateur -->
+    <section id="gate-panel" class="panel" style="max-width: 460px; margin: 24px auto;">
+      <h2>Accès réservé à l'équipe O'Market</h2>
+      <p class="hint">Saisissez la clé d'accès opérateur configurée sur le serveur pour déverrouiller la gestion.</p>
+      <form id="unlock-form" class="stack-form">
+        <label>
+          Clé d'accès opérateur
+          <input type="password" id="admin-token-input" required autocomplete="off" />
+        </label>
+        <button type="submit" class="btn btn-primary full-width">Déverrouiller</button>
+      </form>
+    </section>
+
+    <section class="panel" style="margin-top: 20px;">
+        <div class="section-head">
+          <h2>Équipe, Administrateurs &amp; Livreurs Moto</h2>
+          <button id="reload-users-btn" class="btn btn-light" type="button">Actualiser</button>
+        </div>
+        <div id="admin-users-list" class="orders-list"></div>
+      </section>
+      
+    <!-- Espace de gestion (visible uniquement après authentification valide) -->
+    <div id="workspace-panel" class="hidden">
+      <div class="grid-two-col" style="margin-bottom: 20px;">
+        <section class="panel">
+          <h2>Nouveau produit / Prix / Promotion</h2>
+          <form id="create-product-form" class="stack-form">
+            <label>
+              Nom du produit
+              <input type="text" id="prod-name" required />
+            </label>
+            <label>
+              Prix (FCFA)
+              <input type="number" id="prod-price" min="0" step="1" required />
+            </label>
+            <label>
+              Stock initial
+              <input type="number" id="prod-stock" min="0" step="1" value="0" required />
+            </label>
+            <label>
+              URL image
+              <input type="url" id="prod-image" />
+            </label>
+            <label style="flex-direction: row; align-items: center; gap: 8px;">
+              <input type="checkbox" id="prod-sponsored" style="width: auto;" />
+              Promotion / Mise en avant sponsorisée
+            </label>
+            <button type="submit" class="btn btn-primary">Ajouter le produit</button>
+          </form>
+        </section>
+
+        <section class="panel">
+          <h2>Nouvelle bannière promotionnelle</h2>
+          <form id="create-banner-form" class="stack-form">
+            <label>
+              Titre de la promotion
+              <input type="text" id="banner-title" />
+            </label>
+            <label>
+              URL image de la bannière
+              <input type="url" id="banner-image" required />
+            </label>
+            <label>
+              Lien de destination
+              <input type="url" id="banner-target" />
+            </label>
+            <button type="submit" class="btn btn-primary">Publier la bannière</button>
+          </form>
+        </section>
+      </div>
+
+      <section class="panel" style="margin-bottom: 20px;">
+        <div class="section-head">
+          <h2>Catalogue, Prix &amp; Promotions</h2>
+          <button id="reload-catalog-btn" class="btn btn-light" type="button">Actualiser</button>
+        </div>
+        <div id="admin-products-list" class="orders-list"></div>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <h2>Commandes clients &amp; Suivi motos / préparation</h2>
+          <button id="reload-orders-btn" class="btn btn-light" type="button">Actualiser</button>
+        </div>
+        <div id="admin-orders-list" class="orders-list"></div>
+      </section>
+    </div>
+  </main>
+
+  <script src="./admin.js"></script>
+</body>
+</html>
