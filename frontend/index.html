@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>O'Market — Courses &amp; Marché</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <div class="brand">
+        <span class="brand-badge">O'M</span>
+        <div>
+          <h1>O'Market</h1>
+          <p class="subtitle">Catalogue, liste intelligente &amp; commande</p>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <span id="api-status" class="status-pill">Vérification...</span>
+        <a href="./admin.html" class="btn btn-light">Gestion</a>
+        <button id="open-auth-btn" class="btn btn-secondary" type="button">Connexion</button>
+        <div id="user-chip" class="user-chip hidden">
+          <span id="user-label"></span>
+          <button id="logout-btn" class="btn-link" type="button">Déconnexion</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container main-layout">
+    <nav class="tabs" aria-label="Navigation">
+      <button class="tab-btn active" data-tab="catalog-section" type="button">Catalogue &amp; Panier</button>
+      <button class="tab-btn" data-tab="smart-list-section" type="button">Liste Intelligente</button>
+    </nav>
+
+    <div id="global-alert" class="alert hidden" role="alert"></div>
+
+    <section id="catalog-section" class="tab-panel active">
+      <div class="grid-two-col">
+        <div>
+          <div class="section-head">
+            <h2>Catalogue Produits</h2>
+            <button id="refresh-products-btn" class="btn btn-light" type="button">Actualiser</button>
+          </div>
+          <div id="products-list" class="cards-grid"></div>
+        </div>
+
+        <aside class="panel cart-panel">
+          <h2>Panier</h2>
+          <div id="cart-items" class="cart-list"></div>
+
+          <div class="cart-summary">
+            <span>Total</span>
+            <strong id="cart-total">0 FCFA</strong>
+          </div>
+
+          <form id="order-form" class="stack-form">
+            <label>
+              Adresse / Quartier de livraison
+              <input type="text" id="delivery-address" required />
+            </label>
+            <label>
+              Repère précis
+              <input type="text" id="delivery-landmark" required />
+            </label>
+            <button type="submit" class="btn btn-primary full-width">Valider la commande</button>
+          </form>
+        </aside>
+      </div>
+    </section>
+
+    <section id="smart-list-section" class="tab-panel">
+      <div class="panel">
+        <h2>Liste Intelligente</h2>
+        <form id="smart-list-form" class="stack-form">
+          <label>
+            Saisissez vos articles
+            <textarea id="smart-list-input" rows="4" required></textarea>
+          </label>
+          <button type="submit" class="btn btn-primary">Analyser la liste</button>
+        </form>
+        <div id="smart-list-result" class="result-box hidden"></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="auth-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2 id="auth-modal-title">Connexion / Inscription</h2>
+        <button id="close-auth-btn" class="btn-icon" type="button" aria-label="Fermer">✕</button>
+      </div>
+      <form id="auth-form" class="stack-form">
+        <label>
+          Numéro de téléphone
+          <input type="tel" id="auth-phone" required />
+        </label>
+        <label>
+          Nom complet
+          <input type="text" id="auth-name" />
+        </label>
+        <button type="submit" class="btn btn-primary full-width">Continuer</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>

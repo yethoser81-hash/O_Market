@@ -18,6 +18,7 @@
       </div>
 
       <div class="topbar-actions">
+        <a href="./index.html" class="btn btn-light">Boutique</a>
         <button id="admin-lock-btn" class="btn btn-secondary hidden" type="button">Verrouiller la session</button>
       </div>
     </div>
@@ -39,14 +40,6 @@
       </form>
     </section>
 
-    <section class="panel" style="margin-top: 20px;">
-        <div class="section-head">
-          <h2>Équipe, Administrateurs &amp; Livreurs Moto</h2>
-          <button id="reload-users-btn" class="btn btn-light" type="button">Actualiser</button>
-        </div>
-        <div id="admin-users-list" class="orders-list"></div>
-      </section>
-      
     <!-- Espace de gestion (visible uniquement après authentification valide) -->
     <div id="workspace-panel" class="hidden">
       <div class="grid-two-col" style="margin-bottom: 20px;">
@@ -105,12 +98,20 @@
         <div id="admin-products-list" class="orders-list"></div>
       </section>
 
-      <section class="panel">
+      <section class="panel" style="margin-bottom: 20px;">
         <div class="section-head">
           <h2>Commandes clients &amp; Suivi motos / préparation</h2>
           <button id="reload-orders-btn" class="btn btn-light" type="button">Actualiser</button>
         </div>
         <div id="admin-orders-list" class="orders-list"></div>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <h2>Équipe, Administrateurs &amp; Livreurs Moto</h2>
+          <button id="reload-users-btn" class="btn btn-light" type="button">Actualiser</button>
+        </div>
+        <div id="admin-users-list" class="orders-list"></div>
       </section>
     </div>
   </main>
