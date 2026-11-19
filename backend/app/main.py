@@ -1,7 +1,10 @@
+from pathlib import Path
 from typing import List
 
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 
 from . import models, schemas
@@ -11,10 +14,13 @@ from .security import require_staff_access
 
 Base.metadata.create_all(bind=engine)
 
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+FRONTEND_DIR = BASE_DIR / "frontend"
+
 app = FastAPI(
     title="O'Market API",
     description="Backend officiel et sécurisé de la plateforme O'Market (Cameroun).",
-    version="1.3.0",
+    version="1.4.0",
 )
 
 app.add_middleware(
@@ -28,8 +34,20 @@ app.add_middleware(
 app.include_router(auth_router)
 
 
+@app.get("/api/health")
+def api_health():
+    return {
+        "app": "O'Market API",
+        "status": "online",
+        "message": "Le moteur de O'Market tourne à plein régime",
+    }
+
+
 @app.get("/")
 def read_root():
+    index_file = FRONTEND_DIR / "index.html"
+    if index_file.is_file():
+        return FileResponse(index_file)
     return {
         "app": "O'Market API",
         "status": "online",
@@ -266,7 +284,6 @@ def create_order(order: schemas.OrderCreate, db: Session = Depends(get_db)):
         if not user_exists:
             raise HTTPException(status_code=404, detail="Utilisateur introuvable.")
 
-    # Regroupement des quantités par product_id et lecture stricte des prix en base
     requested_qty_by_id = {}
     for item in order.items:
         requested_qty_by_id[item.product_id] = (
@@ -381,3 +398,7 @@ def update_order_status(
         created_at=order.created_at,
         items=items,
     )
+
+
+if FRONTEND_DIR.is_dir():
+    app.mount("/", StaticFiles(directory=str(FRONTEND_DIR), html=True), name="frontend")
