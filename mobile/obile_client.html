@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>O'Market — Application Client</title>
+  <style>
+    :root {
+      --bg-page: #f5f9f7;
+      --bg-card: #ffffff;
+      --bg-soft: #e8f5ee;
+      --ink: #122119;
+      --muted: #51665b;
+      --primary: #0b7a47;
+      --primary-dark: #075933;
+      --promo: #d97706;
+      --promo-bg: #fffbeb;
+      --border: #d6e4dc;
+      --ok-bg: #e6f7ee;
+      --ok-ink: #065f46;
+      --err-bg: #fef2f2;
+      --err-ink: #991b1b;
+      --radius: 16px;
+      --shadow: 0 6px 20px rgba(18, 33, 25, 0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg-page);
+      color: var(--ink);
+      line-height: 1.5;
+      padding-bottom: 84px;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+    }
+
+    .topbar-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--primary), #16a34a);
+      color: #ffffff;
+      font-weight: 800;
+      display: grid;
+      place-items: center;
+      font-size: 1rem;
+    }
+
+    .brand-name {
+      margin: 0;
+      font-size: 1.15rem;
+      font-weight: 800;
+    }
+
+    .brand-tagline {
+      margin: 0;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .top-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      font-size: 0.76rem;
+      font-weight: 700;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--bg-soft);
+      color: var(--primary-dark);
+    }
+
+    .pill.offline {
+      background: var(--err-bg);
+      color: var(--err-ink);
+    }
+
+    .container {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 18px 16px;
+    }
+
+    .hero {
+      background: linear-gradient(125deg, #ffffff 0%, #e7f6ee 100%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .hero h2 {
+      margin: 0 0 4px;
+      font-size: 1.18rem;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .banner-strip {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      margin-bottom: 16px;
+    }
+
+    .banner-card {
+      min-width: 260px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 14px;
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .banner-card img {
+      width: 54px;
+      height: 54px;
+      border-radius: 10px;
+      object-fit: cover;
+      background: var(--bg-soft);
+    }
+
+    .alert {
+      padding: 12px 14px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .alert.success {
+      background: var(--ok-bg);
+      color: var(--ok-ink);
+      border: 1px solid #a7f3d0;
+    }
+
+    .alert.error {
+      background: var(--err-bg);
+      color: var(--err-ink);
+      border: 1px solid #fecaca;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .page-view {
+      display: none;
+    }
+
+    .page-view.active {
+      display: block;
+    }
+
+    .shop-layout {
+      display: grid;
+      grid-template-columns: 1.65fr 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    @media (max-width: 880px) {
+      .shop-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .section-head h3,
+    .card h3 {
+      margin: 0;
+      font-size: 1.05rem;
+    }
+
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .chip-btn {
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--ink);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .chip-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(205px, 1fr));
+      gap: 14px;
+    }
+
+    .product-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .product-card img {
+      width: 100%;
+      height: 122px;
+      object-fit: cover;
+      border-radius: 10px;
+      background: var(--bg-soft);
+      margin-bottom: 8px;
+    }
+
+    .sponsored-badge {
+      display: inline-block;
+      background: var(--promo-bg);
+      color: var(--promo);
+      border: 1px solid #fde68a;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-bottom: 6px;
+    }
+
+    .product-title {
+      margin: 0 0 4px;
+      font-size: 0.98rem;
+      font-weight: 700;
+    }
+
+    .product-price {
+      color: var(--primary);
+      font-weight: 800;
+      font-size: 1rem;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 0.84rem;
+    }
+
+    .magic-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .magic-tab {
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg-page);
+      color: var(--ink);
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 0.86rem;
+    }
+
+    .magic-tab.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
+    .form-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-weight: 600;
+      font-size: 0.88rem;
+    }
+
+    .check-row {
+      flex-direction: row;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+    }
+
+    .check-row input {
+      width: auto;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      padding: 11px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      font: inherit;
+      background: #ffffff;
+      color: var(--ink);
+    }
+
+    .voice-zone {
+      background: var(--bg-soft);
+      border: 1px dashed var(--primary);
+      border-radius: 12px;
+      padding: 14px;
+      text-align: center;
+    }
+
+    .mic-btn {
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      border-radius: 999px;
+      padding: 12px 20px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 0.94rem;
+    }
+
+    .mic-btn.active-mic {
+      background: #dc2626;
+    }
+
+    .img-preview {
+      max-width: 100%;
+      max-height: 210px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      object-fit: contain;
+      background: var(--bg-page);
+    }
+
+    .stack-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .list-line {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: var(--bg-page);
+      border: 1px solid var(--border);
+    }
+
+    .total-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-top: 1px solid var(--border);
+      margin-top: 8px;
+      font-size: 1.04rem;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn-soft {
+      background: var(--bg-soft);
+      color: var(--primary-dark);
+    }
+
+    .btn-remove {
+      background: none;
+      border: none;
+      color: var(--err-ink);
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .full {
+      width: 100%;
+    }
+
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--bg-card);
+      border-top: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      padding: 8px 10px;
+      z-index: 30;
+    }
+
+    .bottom-btn {
+      background: none;
+      border: none;
+      padding: 8px;
+      border-radius: 10px;
+      font-weight: 700;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    .bottom-btn.active {
+      background: var(--bg-soft);
+      color: var(--primary-dark);
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(18, 33, 25, 0.45);
+      display: grid;
+      place-items: center;
+      padding: 16px;
+      z-index: 50;
+    }
+
+    .modal-box {
+      width: min(420px, 100%);
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .modal-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .modal-top h3 {
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-mark">O'M</div>
+        <div>
+          <h1 class="brand-name">O'Market</h1>
+          <p class="brand-tagline">Vitrine marché, liste magique &amp; livraison</p>
+        </div>
+      </div>
+
+      <div class="top-controls">
+        <span id="api-badge" class="pill">Connexion...</span>
+        <button id="open-login-btn" class="btn btn-soft" type="button">Connexion</button>
+        <div id="user-badge" class="pill hidden">
+          <span id="user-display"></span>
+          <button id="signout-btn" class="btn-remove" type="button" style="margin-left: 6px;">Quitter</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <div>
+        <h2>Vos courses en quelques gestes</h2>
+        <p>Parcourez les rayons ou transformez une liste écrite, dictée à voix haute ou prise en photo en panier prêt à commander.</p>
+      </div>
+      <button id="go-magic-btn" class="btn btn-primary" type="button">Ouvrir Liste Magique</button>
+    </section>
+
+    <div id="banners-bar" class="banner-strip hidden"></div>
+    <div id="notice-box" class="alert hidden" role="alert"></div>
+
+    <!-- VUE 1 : VITRINE & PANIER -->
+    <section id="view-catalogue" class="page-view active">
+      <div class="shop-layout">
+        <div>
+          <div class="section-head">
+            <h3>Rayons &amp; Produits</h3>
+            <button id="refresh-btn" class="btn btn-soft" type="button">Actualiser</button>
+          </div>
+
+          <div class="filter-bar">
+            <button class="chip-btn active" data-filter="all" type="button">Tout</button>
+            <button class="chip-btn" data-filter="sponsored" type="button">Sponsorisés / Promos</button>
+          </div>
+
+          <div id="products-grid" class="products-grid"></div>
+        </div>
+
+        <aside id="cart-panel" class="card">
+          <h3>Mon Panier</h3>
+          <div id="cart-list" class="stack-list"></div>
+
+          <div class="total-line">
+            <strong>Total à régler</strong>
+            <strong id="cart-total">0 FCFA</strong>
+          </div>
+
+          <form id="order-form" class="form-stack">
+            <label>
+              Quartier / Adresse de livraison
+              <input type="text" id="addr-input" required placeholder="Ex. : Tsinga, Bastos, Mvan..." />
+            </label>
+            <label>
+              Repère visuel précis (indispensable pour le livreur)
+              <input type="text" id="landmark-input" required placeholder="Ex. : Face pharmacie, portail bleu..." />
+            </label>
+            <label class="check-row">
+              <input type="checkbox" id="diaspora-check" />
+              <span>Commande Diaspora (je règle pour un proche au pays)</span>
+            </label>
+            <div id="diaspora-fields" class="form-stack hidden">
+              <label>
+                Numéro de téléphone du bénéficiaire au pays
+                <input type="tel" id="recipient-phone" placeholder="Ex. : 6XXXXXXXX" />
+              </label>
+            </div>
+            <label>
+              Mode de pré-paiement validé avant expédition
+              <select id="payment-method" required>
+                <option value="mtn_momo">MTN Mobile Money (pré-paiement)</option>
+                <option value="orange_money">Orange Money (pré-paiement)</option>
+                <option value="diaspora_card">Carte / Paiement Diaspora (pré-paiement)</option>
+              </select>
+            </label>
+            <button type="submit" class="btn btn-primary full">Confirmer &amp; Payer</button>
+          </form>
+        </aside>
+      </div>
+    </section>
+
+    <!-- VUE 2 : LISTE MAGIQUE (TEXTE, VOIX, IMAGE) -->
+    <section id="view-magic" class="page-view">
+      <div class="card">
+        <div class="section-head">
+          <h3>Liste Magique O'Market</h3>
+        </div>
+
+        <div class="magic-tabs">
+          <button class="magic-tab active" data-tab="text" type="button">Texte / WhatsApp</button>
+          <button class="magic-tab" data-tab="voice" type="button">Voix</button>
+          <button class="magic-tab" data-tab="image" type="button">Photo / Image</button>
+        </div>
+
+        <form id="magic-text-form" class="form-stack magic-box">
+          <label>
+            Collez ou écrivez votre liste brute
+            <textarea id="magic-text-area" rows="4" required placeholder="Ex. : 2 huile Yamaor, 5kg riz, sucre, savon..."></textarea>
+          </label>
+          <button type="submit" class="btn btn-primary">Transformer en panier</button>
+        </form>
+
+        <div id="magic-voice-box" class="form-stack magic-box hidden">
+          <div class="voice-zone">
+            <p class="muted" style="margin-top: 0;">Dictez votre liste naturellement à voix haute.</p>
+            <button id="mic-toggle-btn" class="mic-btn" type="button">Démarrer la voix</button>
+            <p id="mic-state" class="muted" style="margin-bottom: 0;">Prêt pour la dictée.</p>
+          </div>
+          <label>
+            Transcription vocale (modifiable)
+            <textarea id="voice-text-area" rows="3" placeholder="Votre liste dictée s'affichera ici..."></textarea>
+          </label>
+          <button id="voice-parse-btn" class="btn btn-primary" type="button">Analyser la dictée</button>
+        </div>
+
+        <div id="magic-image-box" class="form-stack magic-box hidden">
+          <label>
+            Prendre en photo ou importer une image de liste
+            <input type="file" id="image-file-input" accept="image/*" capture="environment" />
+          </label>
+          <img id="image-preview" class="img-preview hidden" alt="Aperçu de la liste" />
+          <label>
+            Articles lus ou notés sur l'image
+            <textarea id="image-text-area" rows="3" placeholder="Saisissez ou confirmez les articles visibles sur la photo..."></textarea>
+          </label>
+          <button id="image-parse-btn" class="btn btn-primary" type="button">Analyser la liste image</button>
+        </div>
+
+        <div id="magic-results" class="stack-list hidden" style="margin-top: 16px;"></div>
+      </div>
+    </section>
+
+    <!-- VUE 3 : PANIER MOBILE -->
+    <section id="view-cart" class="page-view">
+      <div id="mobile-cart-host"></div>
+    </section>
+  </main>
+
+  <nav class="bottom-bar" aria-label="Navigation">
+    <button class="bottom-btn active" data-view="view-catalogue" type="button">Vitrine</button>
+    <button class="bottom-btn" data-view="view-magic" type="button">Liste Magique</button>
+    <button class="bottom-btn" data-view="view-cart" type="button">Panier (<span id="bottom-cart-count">0</span>)</button>
+  </nav>
+
+  <!-- MODALE CONNEXION TÉLÉPHONE -->
+  <div id="login-modal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-box">
+      <div class="modal-top">
+        <h3>Connexion par téléphone</h3>
+        <button id="close-login-btn" class="btn btn-soft" type="button">✕</button>
+      </div>
+      <form id="login-form" class="form-stack">
+        <label>
+          Numéro de téléphone
+          <input type="tel" id="login-phone" required placeholder="Ex. : 6XXXXXXXX" />
+        </label>
+        <label>
+          Nom complet
+          <input type="text" id="login-name" placeholder="Votre nom" />
+        </label>
+        <button type="submit" class="btn btn-primary full">Continuer</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const BACKEND_URL = "https://o-market-8eu1.onrender.com";
+
+    const state = {
+      user: JSON.parse(localStorage.getItem("omarket_user_session") || "null"),
+      products: [],
+      banners: [],
+      cart: JSON.parse(localStorage.getItem("omarket_basket") || "[]"),
+      filter: "all",
+      uploadedImageData: null
+    };
+
+    const dom = {
+      apiBadge: document.getElementById("api-badge"),
+      openLoginBtn: document.getElementById("open-login-btn"),
+      closeLoginBtn: document.getElementById("close-login-btn"),
+      loginModal: document.getElementById("login-modal"),
+      loginForm: document.getElementById("login-form"),
+      loginPhone: document.getElementById("login-phone"),
+      loginName: document.getElementById("login-name"),
+      userBadge: document.getElementById("user-badge"),
+      userDisplay: document.getElementById("user-display"),
+      signoutBtn: document.getElementById("signout-btn"),
+      goMagicBtn: document.getElementById("go-magic-btn"),
+      bannersBar: document.getElementById("banners-bar"),
+      noticeBox: document.getElementById("notice-box"),
+      refreshBtn: document.getElementById("refresh-btn"),
+      productsGrid: document.getElementById("products-grid"),
+      cartPanel: document.getElementById("cart-panel"),
+      shopLayout: document.querySelector(".shop-layout"),
+      mobileCartHost: document.getElementById("mobile-cart-host"),
+      cartList: document.getElementById("cart-list"),
+      cartTotal: document.getElementById("cart-total"),
+      bottomCartCount: document.getElementById("bottom-cart-count"),
+      orderForm: document.getElementById("order-form"),
+      addrInput: document.getElementById("addr-input"),
+      landmarkInput: document.getElementById("landmark-input"),
+      diasporaCheck: document.getElementById("diaspora-check"),
+      diasporaFields: document.getElementById("diaspora-fields"),
+      recipientPhone: document.getElementById("recipient-phone"),
+      paymentMethod: document.getElementById("payment-method"),
+      magicTextForm: document.getElementById("magic-text-form"),
+      magicTextArea: document.getElementById("magic-text-area"),
+      micToggleBtn: document.getElementById("mic-toggle-btn"),
+      micState: document.getElementById("mic-state"),
+      voiceTextArea: document.getElementById("voice-text-area"),
+      voiceParseBtn: document.getElementById("voice-parse-btn"),
+      imageFileInput: document.getElementById("image-file-input"),
+      imagePreview: document.getElementById("image-preview"),
+      imageTextArea: document.getElementById("image-text-area"),
+      imageParseBtn: document.getElementById("image-parse-btn"),
+      magicResults: document.getElementById("magic-results")
+    };
+
+    function formatXaf(amount) {
+      return `${Number(amount || 0).toLocaleString("fr-FR")} FCFA`;
+    }
+
+    function showNotice(text, type = "success") {
+      dom.noticeBox.textContent = text;
+      dom.noticeBox.className = `alert ${type}`;
+      dom.noticeBox.classList.remove("hidden");
+      clearTimeout(showNotice._timer);
+      showNotice._timer = setTimeout(() => dom.noticeBox.classList.add("hidden"), 4500);
+    }
+
+    function saveBasket() {
+      localStorage.setItem("omarket_basket", JSON.stringify(state.cart));
+      renderBasket();
+    }
+
+    function renderUser() {
+      if (state.user) {
+        dom.openLoginBtn.classList.add("hidden");
+        dom.userBadge.classList.remove("hidden");
+        dom.userDisplay.textContent = state.user.full_name || state.user.phone;
+      } else {
+        dom.openLoginBtn.classList.remove("hidden");
+        dom.userBadge.classList.add("hidden");
+        dom.userDisplay.textContent = "";
+      }
+    }
+
+    function addToBasket(item) {
+      const existing = state.cart.find((entry) => entry.product_id === item.product_id);
+      if (existing) {
+        existing.quantity += Number(item.quantity || 1);
+      } else {
+        state.cart.push({
+          product_id: item.product_id,
+          product_name: item.product_name,
+          unit_price: Number(item.unit_price || 0),
+          quantity: Number(item.quantity || 1)
+        });
+      }
+      saveBasket();
+      showNotice(`${item.product_name} ajouté au panier.`);
+    }
+
+    function renderBasket() {
+      const totalItems = state.cart.reduce((sum, item) => sum + Number(item.quantity || 0), 0);
+      dom.bottomCartCount.textContent = totalItems;
+
+      if (!state.cart.length) {
+        dom.cartList.innerHTML = `<p class="muted">Votre panier est vide.</p>`;
+        dom.cartTotal.textContent = formatXaf(0);
+        return;
+      }
+
+      dom.cartList.innerHTML = "";
+      let total = 0;
+
+      state.cart.forEach((item, idx) => {
+        const lineTotal = Number(item.unit_price) * Number(item.quantity);
+        total += lineTotal;
+        const row = document.createElement("div");
+        row.className = "list-line";
+        row.innerHTML = `
+          <div>
+            <strong>${item.product_name}</strong>
+            <div class="muted">${item.quantity} × ${formatXaf(item.unit_price)} = ${formatXaf(lineTotal)}</div>
+          </div>
+          <button class="btn-remove" type="button">Retirer</button>
+        `;
+        row.querySelector("button").addEventListener("click", () => {
+          state.cart.splice(idx, 1);
+          saveBasket();
+        });
+        dom.cartList.appendChild(row);
+      });
+
+      dom.cartTotal.textContent = formatXaf(total);
+    }
+
+    async function checkApi() {
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/health`);
+        if (!res.ok) throw new Error();
+        dom.apiBadge.textContent = "En ligne";
+        dom.apiBadge.className = "pill";
+      } catch {
+        dom.apiBadge.textContent = "Hors ligne";
+        dom.apiBadge.className = "pill offline";
+      }
+    }
+
+    async function loadBanners() {
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/banners`);
+        if (!res.ok) return;
+        const list = await res.json();
+        const active = (Array.isArray(list) ? list : []).filter((b) => b.is_active !== false);
+        if (!active.length) {
+          dom.bannersBar.classList.add("hidden");
+          return;
+        }
+        dom.bannersBar.innerHTML = "";
+        active.forEach((b) => {
+          const box = document.createElement("div");
+          box.className = "banner-card";
+          box.innerHTML = `
+            ${b.image_url ? `<img src="${b.image_url}" alt="${b.title || "Promotion"}" />` : ""}
+            <div>
+              <strong>${b.title || "Offre partenaire"}</strong>
+              <div class="muted">Disponible sur O'Market</div>
+            </div>
+          `;
+          dom.bannersBar.appendChild(box);
+        });
+        dom.bannersBar.classList.remove("hidden");
+      } catch {
+        dom.bannersBar.classList.add("hidden");
+      }
+    }
+
+    async function loadProducts() {
+      dom.productsGrid.innerHTML = `<p class="muted">Chargement du catalogue...</p>`;
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/products`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        state.products = Array.isArray(data) ? data : [];
+        renderProducts();
+      } catch (err) {
+        dom.productsGrid.innerHTML = `<p class="muted">Erreur de chargement : ${err.message}</p>`;
+      }
+    }
+
+    function renderProducts() {
+      const visible = state.filter === "sponsored"
+        ? state.products.filter((p) => Boolean(p.is_sponsored))
+        : state.products;
+
+      if (!visible.length) {
+        dom.productsGrid.innerHTML = `<p class="muted">Aucun produit dans cette sélection.</p>`;
+        return;
+      }
+
+      dom.productsGrid.innerHTML = "";
+      visible.forEach((prod) => {
+        const card = document.createElement("article");
+        card.className = "product-card";
+        card.innerHTML = `
+          <div>
+            ${prod.image_url ? `<img src="${prod.image_url}" alt="${prod.name}" loading="lazy" />` : ""}
+            ${prod.is_sponsored ? `<span class="sponsored-badge">Sponsorisé</span>` : ""}
+            <h4 class="product-title">${prod.name}</h4>
+            <div class="product-price">${formatXaf(prod.price)}</div>
+            <div class="muted">Stock : ${prod.stock ?? 0}</div>
+          </div>
+          <button class="btn btn-primary full" type="button">Ajouter au panier</button>
+        `;
+        card.querySelector("button").addEventListener("click", () => {
+          addToBasket({
+            product_id: prod.id,
+            product_name: prod.name,
+            unit_price: Number(prod.price),
+            quantity: 1
+          });
+        });
+        dom.productsGrid.appendChild(card);
+      });
+    }
+
+    async function parseList(rawText, extra = {}) {
+      const text = (rawText || "").trim();
+      if (!text) {
+        showNotice("Veuillez saisir ou dicter au moins un article.", "error");
+        return;
+      }
+
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/smart-list`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ raw_text: text, ...extra })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Analyse impossible");
+
+        const items = Array.isArray(data.parsed_items) ? data.parsed_items : [];
+        dom.magicResults.innerHTML = "";
+        dom.magicResults.classList.remove("hidden");
+
+        const summary = document.createElement("div");
+        summary.className = "list-line";
+        summary.innerHTML = `
+          <span><strong>${data.message || "Liste analysée"}</strong></span>
+          <strong>${formatXaf(data.total_estimated)}</strong>
+        `;
+        dom.magicResults.appendChild(summary);
+
+        const matched = items.filter((it) => Boolean(it.product_id));
+        if (!matched.length) {
+          const note = document.createElement("p");
+          note.className = "muted";
+          note.textContent = "Aucun article du catalogue ne correspond à cette liste.";
+          dom.magicResults.appendChild(note);
+          return;
+        }
+
+        matched.forEach((it) => {
+          const row = document.createElement("div");
+          row.className = "list-line";
+          row.innerHTML = `
+            <div>
+              <strong>${it.product_name}</strong>
+              <div class="muted">${it.quantity || 1} × ${formatXaf(it.unit_price)}</div>
+            </div>
+            <button class="btn btn-soft" type="button">Ajouter</button>
+          `;
+          row.querySelector("button").addEventListener("click", () => {
+            addToBasket({
+              product_id: it.product_id,
+              product_name: it.product_name,
+              unit_price: Number(it.unit_price || 0),
+              quantity: Number(it.quantity || 1)
+            });
+          });
+          dom.magicResults.appendChild(row);
+        });
+      } catch (err) {
+        showNotice(err.message, "error");
+      }
+    }
+
+    // --- DICTÉE VOCALE ---
+    const SpeechConstructor = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let speechEngine = null;
+    let isRecording = false;
+
+    if (SpeechConstructor) {
+      speechEngine = new SpeechConstructor();
+      speechEngine.lang = "fr-FR";
+      speechEngine.interimResults = true;
+      speechEngine.continuous = false;
+
+      speechEngine.onstart = () => {
+        isRecording = true;
+        dom.micToggleBtn.textContent = "Arrêter la voix";
+        dom.micToggleBtn.classList.add("active-mic");
+        dom.micState.textContent = "Écoute en cours...";
+      };
+
+      speechEngine.onresult = (event) => {
+        let spoken = "";
+        for (let i = 0; i < event.results.length; i += 1) {
+          spoken += event.results[i][0].transcript;
+        }
+        dom.voiceTextArea.value = spoken;
+      };
+
+      speechEngine.onerror = (event) => {
+        dom.micState.textContent = `Erreur micro : ${event.error}`;
+      };
+
+      speechEngine.onend = () => {
+        isRecording = false;
+        dom.micToggleBtn.textContent = "Démarrer la voix";
+        dom.micToggleBtn.classList.remove("active-mic");
+        dom.micState.textContent = "Dictée terminée.";
+      };
+    } else {
+      dom.micState.textContent = "Dictée vocale indisponible ici ; saisissez votre liste ci-dessous.";
+    }
+
+    dom.micToggleBtn.addEventListener("click", () => {
+      if (!speechEngine) return;
+      if (isRecording) {
+        speechEngine.stop();
+      } else {
+        speechEngine.start();
+      }
+    });
+
+    dom.voiceParseBtn.addEventListener("click", () => {
+      parseList(dom.voiceTextArea.value, { input_mode: "voice" });
+    });
+
+    // --- LISTE IMAGE ---
+    dom.imageFileInput.addEventListener("change", (event) => {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        state.uploadedImageData = reader.result;
+        dom.imagePreview.src = reader.result;
+        dom.imagePreview.classList.remove("hidden");
+        showNotice("Image prête. Vérifiez ou saisissez les articles puis lancez l'analyse.");
+      };
+      reader.readAsDataURL(file);
+    });
+
+    dom.imageParseBtn.addEventListener("click", () => {
+      if (!state.uploadedImageData && !dom.imageTextArea.value.trim()) {
+        showNotice("Ajoutez une photo ou saisissez les articles de la liste.", "error");
+        return;
+      }
+      parseList(dom.imageTextArea.value, {
+        input_mode: "image",
+        has_image: Boolean(state.uploadedImageData)
+      });
+    });
+
+    dom.magicTextForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      parseList(dom.magicTextArea.value, { input_mode: "text" });
+    });
+
+    // --- COMMANDE ---
+    dom.diasporaCheck.addEventListener("change", () => {
+      dom.diasporaFields.classList.toggle("hidden", !dom.diasporaCheck.checked);
+    });
+
+    dom.orderForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!state.cart.length) {
+        showNotice("Votre panier est vide.", "error");
+        return;
+      }
+
+      const landmarkText = state.diasporaCheck.checked && dom.recipientPhone.value.trim()
+        ? `${dom.landmarkInput.value.trim()} | Bénéficiaire : ${dom.recipientPhone.value.trim()} (${dom.paymentMethod.value})`
+        : `${dom.landmarkInput.value.trim()} | Paiement : ${dom.paymentMethod.value}`;
+
+      const payload = {
+        user_id: state.user?.id || null,
+        delivery_address: dom.addrInput.value.trim(),
+        landmark: landmarkText,
+        items: state.cart.map((c) => ({
+          product_id: c.product_id,
+          product_name: c.product_name,
+          quantity: c.quantity
+        }))
+      };
+
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/orders`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Commande refusée");
+
+        state.cart = [];
+        saveBasket();
+        dom.orderForm.reset();
+        dom.diasporaFields.classList.add("hidden");
+        showNotice(`Commande #${data.order_id} enregistrée (${formatXaf(data.total_amount)}) — en attente de confirmation de paiement.`);
+      } catch (err) {
+        showNotice(err.message, "error");
+      }
+    });
+
+    // --- CONNEXION ---
+    dom.openLoginBtn.addEventListener("click", () => dom.loginModal.classList.remove("hidden"));
+    dom.closeLoginBtn.addEventListener("click", () => dom.loginModal.classList.add("hidden"));
+
+    dom.loginForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/auth/login-register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            phone: dom.loginPhone.value.trim(),
+            full_name: dom.loginName.value.trim() || null
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Connexion échouée");
+
+        state.user = data.user || null;
+        localStorage.setItem("omarket_user_session", JSON.stringify(state.user));
+        renderUser();
+        dom.loginModal.classList.add("hidden");
+        showNotice(data.message || "Connexion réussie.");
+      } catch (err) {
+        showNotice(err.message, "error");
+      }
+    });
+
+    dom.signoutBtn.addEventListener("click", () => {
+      state.user = null;
+      localStorage.removeItem("omarket_user_session");
+      renderUser();
+      showNotice("Déconnecté.");
+    });
+
+    // --- NAVIGATION & FILTRES ---
+    function openPage(viewId) {
+      document.querySelectorAll(".page-view").forEach((v) => v.classList.remove("active"));
+      document.querySelectorAll(".bottom-btn").forEach((b) => {
+        b.classList.toggle("active", b.dataset.view === viewId);
+      });
+
+      if (viewId === "view-cart") {
+        dom.mobileCartHost.appendChild(dom.cartPanel);
+      } else if (!dom.shopLayout.contains(dom.cartPanel)) {
+        dom.shopLayout.appendChild(dom.cartPanel);
+      }
+
+      document.getElementById(viewId).classList.add("active");
+    }
+
+    document.querySelectorAll(".bottom-btn").forEach((btn) => {
+      btn.addEventListener("click", () => openPage(btn.dataset.view));
+    });
+
+    dom.goMagicBtn.addEventListener("click", () => openPage("view-magic"));
+    dom.refreshBtn.addEventListener("click", loadProducts);
+
+    document.querySelectorAll(".chip-btn").forEach((chip) => {
+      chip.addEventListener("click", () => {
+        document.querySelectorAll(".chip-btn").forEach((c) => c.classList.remove("active"));
+        chip.classList.add("active");
+        state.filter = chip.dataset.filter;
+        renderProducts();
+      });
+    });
+
+    document.querySelectorAll(".magic-tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".magic-tab").forEach((t) => t.classList.remove("active"));
+        tab.classList.add("active");
+        const mode = tab.dataset.tab;
+        dom.magicTextForm.classList.toggle("hidden", mode !== "text");
+        dom.magicVoicebox = document.getElementById("magic-voice-box");
+        dom.magicVoicebox.classList.toggle("hidden", mode !== "voice");
+        document.getElementById("magic-image-box").classList.toggle("hidden", mode !== "image");
+      });
+    });
+
+    renderUser();
+    renderBasket();
+    checkApi();
+    loadBanners();
+    loadProducts();
+  </script>
+</body>
+</html>

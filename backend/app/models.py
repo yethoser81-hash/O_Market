@@ -19,6 +19,7 @@ class Category(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100), nullable=False)
+    slug = Column(String(100), nullable=True)
     icon_url = Column(Text, nullable=True)
 
 
@@ -32,6 +33,8 @@ class Product(Base):
     name = Column(String(150), nullable=False)
     description = Column(Text, nullable=True)
     price = Column(Float, nullable=False)
+    unit_label = Column(String(30), default="unité", nullable=False)
+    unit_step = Column(Float, default=1.0, nullable=False)
     image_url = Column(Text, nullable=True)
     is_sponsored = Column(Boolean, default=False)
     stock = Column(Integer, default=0)
@@ -46,7 +49,11 @@ class Order(Base):
         Integer, ForeignKey("om_users.id", ondelete="CASCADE"), nullable=False
     )
     status = Column(String(30), default="pending_payment")
+    items_subtotal = Column(Float, default=0.0, nullable=False)
+    delivery_fee = Column(Float, default=1000.0, nullable=False)
+    service_fee = Column(Float, default=100.0, nullable=False)
     total_amount = Column(Float, nullable=False)
+    delivery_zone = Column(String(50), default="standard", nullable=False)
     delivery_address = Column(Text, nullable=False)
     landmark = Column(Text, nullable=True)
     payment_status = Column(String(20), default="unpaid")
@@ -63,7 +70,8 @@ class OrderItem(Base):
     product_id = Column(
         Integer, ForeignKey("om_products.id", ondelete="SET NULL"), nullable=True
     )
-    quantity = Column(Integer, nullable=False)
+    quantity = Column(Float, nullable=False)
+    unit_label = Column(String(30), default="unité", nullable=False)
     unit_price = Column(Float, nullable=False)
 
 

@@ -23,12 +23,31 @@ class UserOut(BaseModel):
         from_attributes = True
 
 
+# --- SCHEMAS CATÉGORIES ---
+class CategoryCreate(BaseModel):
+    name: str
+    slug: Optional[str] = None
+    icon_url: Optional[str] = None
+
+
+class CategoryOut(BaseModel):
+    id: int
+    name: str
+    slug: Optional[str] = None
+    icon_url: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
 # --- SCHEMAS PRODUITS ---
 class ProductCreate(BaseModel):
     category_id: Optional[int] = None
     name: str
     description: Optional[str] = None
     price: float = Field(..., ge=0)
+    unit_label: str = Field(default="unité", min_length=1, max_length=30)
+    unit_step: float = Field(default=1.0, gt=0)
     image_url: Optional[str] = None
     is_sponsored: bool = False
     stock: int = Field(default=0, ge=0)
@@ -39,6 +58,8 @@ class ProductUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     price: Optional[float] = Field(default=None, ge=0)
+    unit_label: Optional[str] = Field(default=None, min_length=1, max_length=30)
+    unit_step: Optional[float] = Field(default=None, gt=0)
     image_url: Optional[str] = None
     is_sponsored: Optional[bool] = None
     stock: Optional[int] = Field(default=None, ge=0)
@@ -50,6 +71,8 @@ class ProductOut(BaseModel):
     name: str
     description: Optional[str] = None
     price: float
+    unit_label: str = "unité"
+    unit_step: float = 1.0
     image_url: Optional[str] = None
     is_sponsored: bool = False
     stock: int
@@ -80,12 +103,14 @@ class BannerOut(BaseModel):
 # --- SCHEMAS LISTE MAGIQUE & COMMANDES ---
 class SmartListRequest(BaseModel):
     raw_text: str
+    source: Optional[str] = "text"
 
 
 class CartItem(BaseModel):
     product_id: int
     product_name: Optional[str] = None
-    quantity: int = Field(..., gt=0)
+    quantity: float = Field(..., gt=0)
+    unit_label: Optional[str] = None
     unit_price: Optional[float] = None  # Ignoré par le serveur lors de la commande
 
 
@@ -104,7 +129,8 @@ class OrderStatusUpdate(BaseModel):
 class OrderItemOut(BaseModel):
     id: int
     product_id: Optional[int] = None
-    quantity: int
+    quantity: float
+    unit_label: str = "unité"
     unit_price: float
 
     class Config:
@@ -115,7 +141,11 @@ class OrderOut(BaseModel):
     id: int
     user_id: int
     status: str
+    items_subtotal: float = 0.0
+    delivery_fee: float = 1000.0
+    service_fee: float = 100.0
     total_amount: float
+    delivery_zone: str = "standard"
     delivery_address: str
     landmark: Optional[str] = None
     payment_status: str
