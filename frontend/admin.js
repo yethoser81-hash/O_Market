@@ -2,6 +2,8 @@ const API_BASE_URL = "https://o-market-8eu1.onrender.com";
 const TOKEN_STORAGE_KEY = "omarket_staff_token";
 
 let staffToken = sessionStorage.getItem(TOKEN_STORAGE_KEY) || "";
+let uploadedProductImageData = null;
+let uploadedBannerImageData = null;
 
 const els = {
   alertBox: document.getElementById("admin-alert"),
@@ -11,7 +13,15 @@ const els = {
   tokenInput: document.getElementById("admin-token-input"),
   lockBtn: document.getElementById("admin-lock-btn"),
   createProductForm: document.getElementById("create-product-form"),
+  prodCategory: document.getElementById("prod-category"),
+  prodUnitLabel: document.getElementById("prod-unit-label"),
+  prodUnitStep: document.getElementById("prod-unit-step"),
+  prodDescription: document.getElementById("prod-description"),
+  prodImageFile: document.getElementById("prod-image-file"),
+  prodImagePreview: document.getElementById("prod-image-preview"),
   createBannerForm: document.getElementById("create-banner-form"),
+  bannerImageFile: document.getElementById("banner-image-file"),
+  bannerImagePreview: document.getElementById("banner-image-preview"),
   reloadCatalogBtn: document.getElementById("reload-catalog-btn"),
   reloadOrdersBtn: document.getElementById("reload-orders-btn"),
   reloadUsersBtn: document.getElementById("reload-users-btn"),
@@ -48,6 +58,78 @@ function setLockedState(unlocked) {
   }
 }
 
+function compressImageToBase64(file, maxWidth = 720, quality = 0.78) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const scale = img.width > maxWidth ? maxWidth / img.width : 1;
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.onerror = reject;
+      img.src = reader.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+els.prodImageFile.addEventListener("change", async (e) => {
+  const file = e.target.files && e.target.files[0];
+  if (!file) {
+    uploadedProductImageData = null;
+    els.prodImagePreview.classList.add("hidden");
+    return;
+  }
+  try {
+    uploadedProductImageData = await compressImageToBase64(file);
+    els.prodImagePreview.src = uploadedProductImageData;
+    els.prodImagePreview.classList.remove("hidden");
+  } catch {
+    notify("Impossible de lire l'image sélectionnée.", "error");
+  }
+});
+
+els.bannerImageFile.addEventListener("change", async (e) => {
+  const file = e.target.files && e.target.files[0];
+  if (!file) {
+    uploadedBannerImageData = null;
+    els.bannerImagePreview.classList.add("hidden");
+    return;
+  }
+  try {
+    uploadedBannerImageData = await compressImageToBase64(file, 960, 0.8);
+    els.bannerImagePreview.src = uploadedBannerImageData;
+    els.bannerImagePreview.classList.remove("hidden");
+  } catch {
+    notify("Impossible de lire l'image de bannière.", "error");
+  }
+});
+
+async function loadCategoriesForSelect() {
+  if (!els.prodCategory) return;
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/categories`);
+    if (!res.ok) return;
+    const cats = await res.json();
+    els.prodCategory.innerHTML = `<option value="">— Sans catégorie —</option>`;
+    (Array.isArray(cats) ? cats : []).forEach((c) => {
+      const opt = document.createElement("option");
+      opt.value = c.id;
+      opt.textContent = c.name;
+      els.prodCategory.appendChild(opt);
+    });
+  } catch {
+    // Garde l'option par défaut si non disponible
+  }
+}
+
 async function verifyAndLoad() {
   if (!staffToken) {
     setLockedState(false);
@@ -64,7 +146,7 @@ async function verifyAndLoad() {
     return;
   }
   setLockedState(true);
-  await Promise.all([loadCatalog(), loadOrders(), loadUsers()]);
+  await Promise.all([loadCategoriesForSelect(), loadCatalog(), loadOrders(), loadUsers()]);
 }
 
 els.unlockForm.addEventListener("submit", async (e) => {
@@ -85,20 +167,28 @@ els.lockBtn.addEventListener("click", () => {
 els.createProductForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const payload = {
+    category_id: els.prodCategory.value ? Number(els.prodCategory.value) : null,
     name: document.getElementById("prod-name").value.trim(),
+    description: els.prodDescription.value.trim() || null,
     price: Number(document.getElementById("prod-price").value),
+    unit_label: els.prodUnitLabel.value,
+    unit_step: Number(els.prodUnitStep.value || 1),
     stock: Number(document.getElementById("prod-stock").value),
-    image_url: document.getElementById("prod-image").value.trim() || null,
+    image_url: uploadedProductImageData,
     is_sponsored: document.getElementById("prod-sponsored").checked
   };
+
   const res = await fetch(`${API_BASE_URL}/api/products`, {
     method: "POST",
     headers: authHeaders(),
     body: JSON.stringify(payload)
   });
+
   if (res.ok) {
     e.target.reset();
-    notify("Produit ajouté au catalogue.");
+    uploadedProductImageData = null;
+    els.prodImagePreview.classList.add("hidden");
+    notify("Produit et image enregistrés en base.");
     loadCatalog();
   } else {
     notify("Erreur lors de l'ajout du produit.", "error");
@@ -107,9 +197,13 @@ els.createProductForm.addEventListener("submit", async (e) => {
 
 els.createBannerForm.addEventListener("submit", async (e) => {
   e.preventDefault();
+  if (!uploadedBannerImageData) {
+    notify("Veuillez sélectionner une image de bannière.", "error");
+    return;
+  }
   const payload = {
     title: document.getElementById("banner-title").value.trim() || null,
-    image_url: document.getElementById("banner-image").value.trim(),
+    image_url: uploadedBannerImageData,
     target_url: document.getElementById("banner-target").value.trim() || null,
     is_active: true
   };
@@ -120,7 +214,9 @@ els.createBannerForm.addEventListener("submit", async (e) => {
   });
   if (res.ok) {
     e.target.reset();
-    notify("Bannière enregistrée.");
+    uploadedBannerImageData = null;
+    els.bannerImagePreview.classList.add("hidden");
+    notify("Bannière enregistrée en base.");
   } else {
     notify("Erreur lors de l'ajout de la bannière.", "error");
   }
@@ -137,11 +233,18 @@ async function loadCatalog() {
   }
 
   products.forEach((p) => {
+    const unitText = p.unit_label || "unité";
     const row = document.createElement("div");
     row.className = "order-card";
     row.innerHTML = `
       <div class="order-top">
-        <strong>#${p.id} — ${p.name}</strong>
+        <div style="display:flex; gap:10px; align-items:center;">
+          ${p.image_url ? `<img src="${p.image_url}" alt="${p.name}" style="width:48px; height:48px; border-radius:8px; object-fit:cover;" />` : ""}
+          <div>
+            <strong>#${p.id} — ${p.name}</strong>
+            <div class="hint">Unité : ${unitText} (pas ${p.unit_step ?? 1})${p.description ? ` — ${p.description}` : ""}</div>
+          </div>
+        </div>
         <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
           <input type="number" id="p-price-${p.id}" value="${p.price}" style="width:110px;" />
           <input type="number" id="p-stock-${p.id}" value="${p.stock}" style="width:85px;" />
@@ -206,7 +309,7 @@ async function loadOrders() {
 
   orders.forEach((o) => {
     const itemsSummary = (o.items || [])
-      .map((i) => `Produit #${i.product_id ?? "?"} ×${i.quantity} (${i.unit_price} FCFA)`)
+      .map((i) => `Produit #${i.product_id ?? "?"} ×${i.quantity} ${i.unit_label || ""} (${i.unit_price} FCFA)`)
       .join(" | ");
 
     const card = document.createElement("div");
@@ -229,7 +332,8 @@ async function loadOrders() {
           <button class="btn btn-primary" type="button" data-order-save="${o.id}">Mettre à jour</button>
         </div>
       </div>
-      <div class="hint">Adresse : ${o.delivery_address} — Repère : ${o.landmark || "-"}</div>
+      <div class="hint">Adresse : ${o.delivery_address} (${o.delivery_zone || "standard"}) — Repère : ${o.landmark || "-"}</div>
+      <div class="hint">Détail : Articles ${Number(o.items_subtotal || 0).toLocaleString("fr-FR")} FCFA + Livraison ${Number(o.delivery_fee || 0).toLocaleString("fr-FR")} FCFA + Frais ${Number(o.service_fee || 100).toLocaleString("fr-FR")} FCFA</div>
       <div class="hint">Articles : ${itemsSummary || "-"}</div>
     `;
     card.querySelector(`[data-order-save="${o.id}"]`).addEventListener("click", () => updateOrder(o.id));

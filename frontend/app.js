@@ -34,6 +34,21 @@ function formatFcfa(amount) {
   return `${Number(amount || 0).toLocaleString("fr-FR")} FCFA`;
 }
 
+function estimateZoneFee(address = "", landmark = "") {
+  const txt = `${address} ${landmark}`.toLowerCase();
+  const remote = [
+    "soba", "nkolfoulou", "mbalmayo", "ekounou", "odza", "nkolbisson",
+    "ping", "minboman", "ahala", "nkoabang", "simbock", "oyomabang"
+  ];
+  const mid = [
+    "mvan", "emana", "mendong", "etoudi", "essos", "melen",
+    "biyem-assi", "biyem assi", "ekoudou", "nlongkak", "ngousso", "mokolo"
+  ];
+  if (remote.some((k) => txt.includes(k))) return 2000;
+  if (mid.some((k) => txt.includes(k))) return 1500;
+  return 1000;
+}
+
 function showAlert(message, type = "success") {
   els.globalAlert.textContent = message;
   els.globalAlert.className = `alert alert-${type}`;
@@ -96,6 +111,8 @@ function renderProducts() {
 
   els.productsList.innerHTML = "";
   state.products.forEach((p) => {
+    const unitLabel = p.unit_label || "unité";
+    const step = Number(p.unit_step || 1);
     const card = document.createElement("article");
     card.className = "product-card";
 
@@ -111,18 +128,25 @@ function renderProducts() {
         ${imgHtml}
         ${sponsorHtml}
         <h3 class="product-title">${p.name}</h3>
-        <div class="product-price">${formatFcfa(p.price)}</div>
+        <div class="product-price">${formatFcfa(p.price)} / ${unitLabel}</div>
+        ${p.description ? `<div class="hint">${p.description}</div>` : ""}
         <div class="hint">Stock : ${p.stock ?? 0}</div>
+        <label style="margin-top: 8px; font-size: 0.82rem;">
+          Quantité (${unitLabel})
+          <input type="number" class="qty-input" value="${step}" min="${step}" step="${step}" />
+        </label>
       </div>
       <button class="btn btn-primary full-width add-cart-btn" type="button">Ajouter au panier</button>
     `;
 
     card.querySelector(".add-cart-btn").addEventListener("click", () => {
+      const chosenQty = Number(card.querySelector(".qty-input").value || step);
       addToCart({
         product_id: p.id,
         product_name: p.name,
+        unit_label: unitLabel,
         unit_price: Number(p.price),
-        quantity: 1
+        quantity: chosenQty
       });
     });
 
@@ -131,14 +155,16 @@ function renderProducts() {
 }
 
 function addToCart(item) {
-  const existing = state.cart.find((c) => c.product_id === item.product_id);
+  const existing = state.cart.find(
+    (c) => c.product_id === item.product_id && (c.unit_label || "unité") === (item.unit_label || "unité")
+  );
   if (existing) {
-    existing.quantity += item.quantity;
+    existing.quantity = Number((Number(existing.quantity) + Number(item.quantity)).toFixed(3));
   } else {
-    state.cart.push({ ...item });
+    state.cart.push({ ...item, unit_label: item.unit_label || "unité" });
   }
   saveCart();
-  showAlert(`${item.product_name} ajouté au panier.`);
+  showAlert(`${item.quantity} ${item.unit_label || "unité"} — ${item.product_name} ajouté au panier.`);
 }
 
 function removeFromCart(index) {
@@ -154,18 +180,19 @@ function renderCart() {
   }
 
   els.cartItems.innerHTML = "";
-  let total = 0;
+  let subtotal = 0;
 
   state.cart.forEach((item, idx) => {
     const lineTotal = Number(item.unit_price) * Number(item.quantity);
-    total += lineTotal;
+    subtotal += lineTotal;
+    const unitText = item.unit_label || "unité";
 
     const row = document.createElement("div");
     row.className = "cart-row";
     row.innerHTML = `
       <div>
         <strong>${item.product_name}</strong><br />
-        <span class="hint">${item.quantity} × ${formatFcfa(item.unit_price)} = ${formatFcfa(lineTotal)}</span>
+        <span class="hint">${item.quantity} ${unitText} × ${formatFcfa(item.unit_price)} = ${formatFcfa(lineTotal)}</span>
       </div>
       <button class="btn-link" type="button">Retirer</button>
     `;
@@ -173,8 +200,24 @@ function renderCart() {
     els.cartItems.appendChild(row);
   });
 
-  els.cartTotal.textContent = formatFcfa(total);
+  const deliveryEst = estimateZoneFee(els.deliveryAddress?.value || "", els.deliveryLandmark?.value || "");
+  const serviceFee = 100;
+  const totalEst = subtotal + deliveryEst + serviceFee;
+
+  const breakdown = document.createElement("div");
+  breakdown.className = "hint";
+  breakdown.style.marginTop = "8px";
+  breakdown.innerHTML = `
+    Articles : <strong>${formatFcfa(subtotal)}</strong><br />
+    Livraison estimée (min. 1 000 FCFA) : <strong>${formatFcfa(deliveryEst)}</strong><br />
+    Frais de service O'Market : <strong>${formatFcfa(serviceFee)}</strong>
+  `;
+  els.cartItems.appendChild(breakdown);
+  els.cartTotal.textContent = formatFcfa(totalEst);
 }
+
+els.deliveryAddress?.addEventListener("input", renderCart);
+els.deliveryLandmark?.addEventListener("input", renderCart);
 
 els.openAuthBtn.addEventListener("click", () => els.authModal.classList.remove("hidden"));
 els.closeAuthBtn.addEventListener("click", () => els.authModal.classList.add("hidden"));
@@ -231,21 +274,23 @@ els.smartListForm.addEventListener("submit", async (e) => {
     els.smartListResult.classList.remove("hidden");
 
     const heading = document.createElement("p");
-    heading.innerHTML = `<strong>${data.message}</strong> — Total estimé : <strong>${formatFcfa(data.total_estimated)}</strong>`;
+    heading.innerHTML = `<strong>${data.message}</strong> — Total estimé articles : <strong>${formatFcfa(data.total_estimated)}</strong>`;
     els.smartListResult.appendChild(heading);
 
     parsedItems.forEach((it) => {
       if (!it.product_id) return;
+      const unitText = it.unit_label || "unité";
       const line = document.createElement("div");
       line.className = "cart-row";
       line.innerHTML = `
-        <span>${it.quantity} × ${it.product_name} (${formatFcfa(it.unit_price)})</span>
+        <span>${it.quantity} ${unitText} × ${it.product_name} (${formatFcfa(it.unit_price)})</span>
         <button class="btn btn-secondary" type="button">Ajouter au panier</button>
       `;
       line.querySelector("button").addEventListener("click", () => {
         addToCart({
           product_id: it.product_id,
           product_name: it.product_name,
+          unit_label: unitText,
           unit_price: Number(it.unit_price || 0),
           quantity: Number(it.quantity || 1)
         });
@@ -271,7 +316,8 @@ els.orderForm.addEventListener("submit", async (e) => {
     items: state.cart.map((c) => ({
       product_id: c.product_id,
       product_name: c.product_name,
-      quantity: c.quantity
+      quantity: c.quantity,
+      unit_label: c.unit_label || "unité"
     }))
   };
 
@@ -287,7 +333,9 @@ els.orderForm.addEventListener("submit", async (e) => {
     state.cart = [];
     saveCart();
     els.orderForm.reset();
-    showAlert(`Commande #${data.order_id} enregistrée (${formatFcfa(data.total_amount)}).`);
+    showAlert(
+      `Commande #${data.order_id} enregistrée — Total : ${formatFcfa(data.total_amount)} (Articles ${formatFcfa(data.items_subtotal)} + Livraison ${formatFcfa(data.delivery_fee)} + Frais ${formatFcfa(data.service_fee)}).`
+    );
   } catch (err) {
     showAlert(err.message, "error");
   }

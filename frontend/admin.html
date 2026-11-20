@@ -13,7 +13,7 @@
         <span class="brand-badge">O'M</span>
         <div>
           <h1>O'Market — Gestion &amp; Logistique</h1>
-          <p class="subtitle">Catalogue, prix, promotions, commandes &amp; livreurs</p>
+          <p class="subtitle">Catalogue, poids/unités, promotions, commandes &amp; livreurs</p>
         </div>
       </div>
 
@@ -40,32 +40,70 @@
       </form>
     </section>
 
-    <!-- Espace de gestion (visible uniquement après authentification valide) -->
+    <!-- Espace de gestion -->
     <div id="workspace-panel" class="hidden">
       <div class="grid-two-col" style="margin-bottom: 20px;">
         <section class="panel">
-          <h2>Nouveau produit / Prix / Promotion</h2>
+          <h2>Nouveau produit / Poids &amp; Unité / Promotion</h2>
           <form id="create-product-form" class="stack-form">
             <label>
               Nom du produit
-              <input type="text" id="prod-name" required />
+              <input type="text" id="prod-name" required placeholder="Ex. : Épices fraîches, Riz parfumé, Tomates..." />
             </label>
+
             <label>
-              Prix (FCFA)
+              Catégorie (optionnel)
+              <select id="prod-category">
+                <option value="">— Sans catégorie —</option>
+              </select>
+            </label>
+
+            <label>
+              Prix par unité / poids de référence (FCFA)
               <input type="number" id="prod-price" min="0" step="1" required />
             </label>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <label>
+                Unité de vente
+                <select id="prod-unit-label">
+                  <option value="unité">unité</option>
+                  <option value="kg">kg (kilogramme)</option>
+                  <option value="g">g (grammes)</option>
+                  <option value="motte">motte</option>
+                  <option value="tas">tas</option>
+                  <option value="litre">litre</option>
+                  <option value="bouteille">bouteille</option>
+                </select>
+              </label>
+
+              <label>
+                Pas / portion de base
+                <input type="number" id="prod-unit-step" min="0.01" step="0.01" value="1" required />
+              </label>
+            </div>
+
             <label>
               Stock initial
               <input type="number" id="prod-stock" min="0" step="1" value="0" required />
             </label>
+
             <label>
-              URL image
-              <input type="url" id="prod-image" />
+              Description / conditionnement (optionnel)
+              <input type="text" id="prod-description" placeholder="Ex. : Motte fraîche du marché, sac de 5 kg..." />
             </label>
+
+            <label>
+              Télécharger une image du produit (enregistrée en base)
+              <input type="file" id="prod-image-file" accept="image/*" />
+            </label>
+            <img id="prod-image-preview" class="hidden" alt="Aperçu produit" style="max-height: 130px; border-radius: 8px; object-fit: contain;" />
+
             <label style="flex-direction: row; align-items: center; gap: 8px;">
               <input type="checkbox" id="prod-sponsored" style="width: auto;" />
               Promotion / Mise en avant sponsorisée
             </label>
+
             <button type="submit" class="btn btn-primary">Ajouter le produit</button>
           </form>
         </section>
@@ -78,11 +116,12 @@
               <input type="text" id="banner-title" />
             </label>
             <label>
-              URL image de la bannière
-              <input type="url" id="banner-image" required />
+              Télécharger l'image de la bannière (enregistrée en base)
+              <input type="file" id="banner-image-file" accept="image/*" required />
             </label>
+            <img id="banner-image-preview" class="hidden" alt="Aperçu bannière" style="max-height: 130px; border-radius: 8px; object-fit: contain;" />
             <label>
-              Lien de destination
+              Lien de destination (optionnel)
               <input type="url" id="banner-target" />
             </label>
             <button type="submit" class="btn btn-primary">Publier la bannière</button>
@@ -92,7 +131,7 @@
 
       <section class="panel" style="margin-bottom: 20px;">
         <div class="section-head">
-          <h2>Catalogue, Prix &amp; Promotions</h2>
+          <h2>Catalogue, Prix, Unités &amp; Promotions</h2>
           <button id="reload-catalog-btn" class="btn btn-light" type="button">Actualiser</button>
         </div>
         <div id="admin-products-list" class="orders-list"></div>
