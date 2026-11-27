@@ -4,6 +4,7 @@ const TOKEN_STORAGE_KEY = "omarket_staff_token";
 let staffToken = sessionStorage.getItem(TOKEN_STORAGE_KEY) || "";
 let uploadedProductImageData = null;
 let uploadedBannerImageData = null;
+let categoriesCache = [];
 
 const els = {
   alertBox: document.getElementById("admin-alert"),
@@ -19,6 +20,9 @@ const els = {
   prodDescription: document.getElementById("prod-description"),
   prodImageFile: document.getElementById("prod-image-file"),
   prodImagePreview: document.getElementById("prod-image-preview"),
+  createCategoryForm: document.getElementById("create-category-form"),
+  catName: document.getElementById("cat-name"),
+  categoriesList: document.getElementById("admin-categories-list"),
   createBannerForm: document.getElementById("create-banner-form"),
   bannerImageFile: document.getElementById("banner-image-file"),
   bannerImagePreview: document.getElementById("banner-image-preview"),
@@ -112,23 +116,78 @@ els.bannerImageFile.addEventListener("change", async (e) => {
   }
 });
 
-async function loadCategoriesForSelect() {
-  if (!els.prodCategory) return;
-  try {
-    const res = await fetch(`${API_BASE_URL}/api/categories`);
-    if (!res.ok) return;
-    const cats = await res.json();
+function renderCategoriesSelectAndList() {
+  if (els.prodCategory) {
+    const currentVal = els.prodCategory.value;
     els.prodCategory.innerHTML = `<option value="">— Sans catégorie —</option>`;
-    (Array.isArray(cats) ? cats : []).forEach((c) => {
+    categoriesCache.forEach((c) => {
       const opt = document.createElement("option");
       opt.value = c.id;
       opt.textContent = c.name;
       els.prodCategory.appendChild(opt);
     });
-  } catch {
-    // Garde l'option par défaut si non disponible
+    if (currentVal) {
+      els.prodCategory.value = currentVal;
+    }
+  }
+
+  if (els.categoriesList) {
+    els.categoriesList.innerHTML = "";
+    if (!categoriesCache.length) {
+      els.categoriesList.innerHTML = `<p class="empty-state">Aucune catégorie enregistrée.</p>`;
+      return;
+    }
+    categoriesCache.forEach((c) => {
+      const row = document.createElement("div");
+      row.className = "cart-row";
+      row.innerHTML = `
+        <div>
+          <strong>#${c.id} — ${c.name}</strong>
+          ${c.slug ? `<div class="hint">/${c.slug}</div>` : ""}
+        </div>
+      `;
+      els.categoriesList.appendChild(row);
+    });
   }
 }
+
+async function loadCategoriesForSelect() {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/categories`);
+    if (!res.ok) return;
+    const cats = await res.json();
+    categoriesCache = Array.isArray(cats) ? cats : [];
+    renderCategoriesSelectAndList();
+  } catch {
+    // Garde le cache actuel en cas d'erreur réseau
+  }
+}
+
+els.createCategoryForm?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const cleanName = els.catName.value.trim();
+  if (!cleanName) return;
+
+  const res = await fetch(`${API_BASE_URL}/api/categories`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({ name: cleanName })
+  });
+
+  if (res.ok) {
+    const created = await res.json();
+    e.target.reset();
+    notify(`Catégorie « ${created.name} » créée.`);
+    await loadCategoriesForSelect();
+    if (els.prodCategory && created.id != null) {
+      els.prodCategory.value = String(created.id);
+    }
+    loadCatalog();
+  } else {
+    const err = await res.json().catch(() => ({}));
+    notify(err.detail || "Erreur lors de la création de la catégorie.", "error");
+  }
+});
 
 async function verifyAndLoad() {
   if (!staffToken) {
@@ -232,8 +291,14 @@ async function loadCatalog() {
     return;
   }
 
+  const catMap = new Map(categoriesCache.map((c) => [String(c.id), c.name]));
+
   products.forEach((p) => {
     const unitText = p.unit_label || "unité";
+    const catLabel =
+      p.category_id != null && catMap.has(String(p.category_id))
+        ? catMap.get(String(p.category_id))
+        : "Sans catégorie";
     const row = document.createElement("div");
     row.className = "order-card";
     row.innerHTML = `
@@ -242,7 +307,7 @@ async function loadCatalog() {
           ${p.image_url ? `<img src="${p.image_url}" alt="${p.name}" style="width:48px; height:48px; border-radius:8px; object-fit:cover;" />` : ""}
           <div>
             <strong>#${p.id} — ${p.name}</strong>
-            <div class="hint">Unité : ${unitText} (pas ${p.unit_step ?? 1})${p.description ? ` — ${p.description}` : ""}</div>
+            <div class="hint">Rayon : ${catLabel} • Unité : ${unitText} (pas ${p.unit_step ?? 1})${p.description ? ` — ${p.description}` : ""}</div>
           </div>
         </div>
         <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">

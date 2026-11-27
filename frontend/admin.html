@@ -13,7 +13,7 @@
         <span class="brand-badge">O'M</span>
         <div>
           <h1>O'Market — Gestion &amp; Logistique</h1>
-          <p class="subtitle">Catalogue, poids/unités, promotions, commandes &amp; livreurs</p>
+          <p class="subtitle">Rayons, catalogue, poids/unités, promotions, commandes &amp; livreurs</p>
         </div>
       </div>
 
@@ -52,7 +52,7 @@
             </label>
 
             <label>
-              Catégorie (optionnel)
+              Catégorie / Rayon (optionnel)
               <select id="prod-category">
                 <option value="">— Sans catégorie —</option>
               </select>
@@ -108,25 +108,39 @@
           </form>
         </section>
 
-        <section class="panel">
-          <h2>Nouvelle bannière promotionnelle</h2>
-          <form id="create-banner-form" class="stack-form">
-            <label>
-              Titre de la promotion
-              <input type="text" id="banner-title" />
-            </label>
-            <label>
-              Télécharger l'image de la bannière (enregistrée en base)
-              <input type="file" id="banner-image-file" accept="image/*" required />
-            </label>
-            <img id="banner-image-preview" class="hidden" alt="Aperçu bannière" style="max-height: 130px; border-radius: 8px; object-fit: contain;" />
-            <label>
-              Lien de destination (optionnel)
-              <input type="url" id="banner-target" />
-            </label>
-            <button type="submit" class="btn btn-primary">Publier la bannière</button>
-          </form>
-        </section>
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+          <section class="panel">
+            <h2>Nouvelle catégorie / Rayon</h2>
+            <form id="create-category-form" class="stack-form">
+              <label>
+                Nom du rayon ou de la catégorie
+                <input type="text" id="cat-name" required placeholder="Ex. : Boissons, Huiles & Condiments, Vivres frais..." />
+              </label>
+              <button type="submit" class="btn btn-primary">Créer la catégorie</button>
+            </form>
+            <div id="admin-categories-list" class="orders-list" style="margin-top: 14px;"></div>
+          </section>
+
+          <section class="panel">
+            <h2>Nouvelle bannière promotionnelle</h2>
+            <form id="create-banner-form" class="stack-form">
+              <label>
+                Titre de la promotion
+                <input type="text" id="banner-title" />
+              </label>
+              <label>
+                Télécharger l'image de la bannière (enregistrée en base)
+                <input type="file" id="banner-image-file" accept="image/*" required />
+              </label>
+              <img id="banner-image-preview" class="hidden" alt="Aperçu bannière" style="max-height: 130px; border-radius: 8px; object-fit: contain;" />
+              <label>
+                Lien de destination (optionnel)
+                <input type="url" id="banner-target" />
+              </label>
+              <button type="submit" class="btn btn-primary">Publier la bannière</button>
+            </form>
+          </section>
+        </div>
       </div>
 
       <section class="panel" style="margin-bottom: 20px;">
