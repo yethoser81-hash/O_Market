@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>O'Market — APK Client</title>
+  <style>
+    :root {
+      --bg-canvas: #e9eff4;
+      --bg-app: #f7faf9;
+      --bg-card: #ffffff;
+      --bg-tint: #e6f4ed;
+      --ink: #0f2438;
+      --ink-muted: #52677a;
+      --teal: #0b7a6b;
+      --teal-dark: #07594e;
+      --amber: #d97706;
+      --amber-soft: #fffbeb;
+      --border: #dce6ec;
+      --ok-bg: #e6f7ee;
+      --ok-ink: #065f46;
+      --err-bg: #fef2f2;
+      --err-ink: #991b1b;
+      --radius-lg: 18px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+      --shadow-card: 0 4px 14px rgba(15, 36, 56, 0.05);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg-canvas);
+      color: var(--ink);
+      display: flex;
+      justify-content: center;
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: 480px;
+      min-height: 100vh;
+      background: var(--bg-app);
+      box-shadow: 0 0 36px rgba(15, 36, 56, 0.1);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* --- ÉCRAN DE CONNEXION INITIAL --- */
+    .auth-screen {
+      flex: 1;
+      padding: 28px 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: linear-gradient(180deg, #ffffff 0%, #eaf6f0 100%);
+    }
+
+    .auth-brand {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .auth-logo-wrap {
+      width: 148px;
+      height: 84px;
+      margin: 0 auto 12px;
+      border-radius: 16px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      padding: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-card);
+    }
+
+    .auth-logo-img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .logo-fallback {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 12px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, var(--teal), #12947f);
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 1.45rem;
+      display: grid;
+      place-items: center;
+    }
+
+    .auth-title {
+      margin: 0;
+      font-size: 1.65rem;
+      font-weight: 800;
+      color: var(--ink);
+    }
+
+    .auth-sub {
+      margin: 6px 0 0;
+      color: var(--ink-muted);
+      font-size: 0.92rem;
+    }
+
+    .auth-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow-card);
+    }
+
+    /* --- EN-TÊTE APPLICATION --- */
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 25;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .header-logo-img {
+      height: 36px;
+      max-width: 96px;
+      object-fit: contain;
+      display: block;
+    }
+
+    .mini-logo-fallback {
+      width: 38px;
+      height: 38px;
+      border-radius: 11px;
+      background: var(--teal);
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 0.95rem;
+      display: grid;
+      place-items: center;
+    }
+
+    .header-title {
+      margin: 0;
+      font-size: 1.04rem;
+      font-weight: 800;
+    }
+
+    .header-user {
+      margin: 0;
+      font-size: 0.76rem;
+      color: var(--ink-muted);
+      font-weight: 600;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-dot {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: var(--bg-tint);
+      color: var(--teal-dark);
+    }
+
+    .status-dot.off {
+      background: var(--err-bg);
+      color: var(--err-ink);
+    }
+
+    /* --- CORPS & VUES --- */
+    .app-body {
+      flex: 1;
+      padding: 14px 14px 86px;
+    }
+
+    .notice {
+      padding: 11px 13px;
+      border-radius: var(--radius-sm);
+      margin-bottom: 12px;
+      font-size: 0.86rem;
+      font-weight: 600;
+    }
+
+    .notice.ok {
+      background: var(--ok-bg);
+      color: var(--ok-ink);
+      border: 1px solid #a7f3d0;
+    }
+
+    .notice.err {
+      background: var(--err-bg);
+      color: var(--err-ink);
+      border: 1px solid #fecaca;
+    }
+
+    .banner-row {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      margin-bottom: 12px;
+    }
+
+    .banner-item {
+      min-width: 250px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .banner-item img {
+      width: 52px;
+      height: 52px;
+      border-radius: 9px;
+      object-fit: cover;
+      background: var(--bg-tint);
+    }
+
+    .view {
+      display: none;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    .cat-scroller {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+    }
+
+    .cat-pill {
+      flex: 0 0 auto;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--ink);
+      padding: 7px 13px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .cat-pill.active {
+      background: var(--teal);
+      color: #ffffff;
+      border-color: var(--teal);
+    }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .prod-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 10px;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .prod-img {
+      width: 100%;
+      height: 112px;
+      object-fit: cover;
+      border-radius: 10px;
+      background: var(--bg-tint);
+      margin-bottom: 6px;
+    }
+
+    .promo-tag {
+      display: inline-block;
+      font-size: 0.68rem;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: var(--amber-soft);
+      color: var(--amber);
+      border: 1px solid #fde68a;
+      margin-bottom: 4px;
+    }
+
+    .prod-name {
+      margin: 0;
+      font-size: 0.92rem;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+
+    .prod-unit {
+      font-size: 0.74rem;
+      color: var(--ink-muted);
+      margin-top: 2px;
+    }
+
+    .prod-price {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: var(--teal-dark);
+      margin-top: 4px;
+    }
+
+    .qty-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .qty-row input {
+      padding: 6px 8px;
+      font-size: 0.82rem;
+      border-radius: 8px;
+    }
+
+    .qty-unit-lbl {
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--ink-muted);
+      white-space: nowrap;
+    }
+
+    .card-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      box-shadow: var(--shadow-card);
+      margin-bottom: 12px;
+    }
+
+    .card-box h3 {
+      margin: 0 0 10px;
+      font-size: 1.02rem;
+    }
+
+    .mode-tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .mode-tab {
+      border: 1px solid var(--border);
+      background: var(--bg-app);
+      color: var(--ink);
+      padding: 8px 6px;
+      border-radius: var(--radius-sm);
+      font-weight: 700;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .mode-tab.active {
+      background: var(--teal);
+      color: #ffffff;
+      border-color: var(--teal);
+    }
+
+    .form-col {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      font-size: 0.84rem;
+      font-weight: 700;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      padding: 10px 11px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      font: inherit;
+      font-size: 0.9rem;
+      background: #ffffff;
+      color: var(--ink);
+    }
+
+    .btn {
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 10px 13px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: var(--teal);
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background: var(--teal-dark);
+    }
+
+    .btn-soft {
+      background: var(--bg-tint);
+      color: var(--teal-dark);
+    }
+
+    .btn-ghost {
+      background: var(--bg-app);
+      color: var(--ink);
+      border: 1px solid var(--border);
+    }
+
+    .btn-danger-link {
+      background: none;
+      border: none;
+      color: var(--err-ink);
+      font-weight: 700;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .full-w {
+      width: 100%;
+    }
+
+    .item-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: 10px 0;
+    }
+
+    .line-card {
+      background: var(--bg-app);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .summary-box {
+      border-top: 1px solid var(--border);
+      padding-top: 10px;
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      font-size: 0.86rem;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .summary-total {
+      display: flex;
+      justify-content: space-between;
+      padding-top: 6px;
+      border-top: 1px dashed var(--border);
+      font-size: 1rem;
+      font-weight: 800;
+    }
+
+    .order-history-card {
+      background: var(--bg-app);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 11px;
+      margin-bottom: 10px;
+      font-size: 0.84rem;
+    }
+
+    .muted {
+      color: var(--ink-muted);
+      font-size: 0.82rem;
+    }
+
+    .voice-box {
+      background: var(--bg-tint);
+      border: 1px dashed var(--teal);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      text-align: center;
+    }
+
+    .img-thumb {
+      max-width: 100%;
+      max-height: 180px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      object-fit: contain;
+    }
+
+    /* --- BARRE DE NAVIGATION BASSE --- */
+    .tab-bar {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 480px;
+      background: var(--bg-card);
+      border-top: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+      z-index: 30;
+    }
+
+    .tab-item {
+      background: none;
+      border: none;
+      border-radius: 10px;
+      padding: 7px 4px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--ink-muted);
+      cursor: pointer;
+    }
+
+    .tab-item.active {
+      background: var(--bg-tint);
+      color: var(--teal-dark);
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- 1. CONNEXION D'ABORD -->
+    <section id="auth-gate" class="auth-screen">
+      <div class="auth-brand">
+        <div class="auth-logo-wrap" id="auth-logo-box">
+          <img
+            src="./pictures/logo.JPG"
+            alt="Logo O'Market"
+            class="auth-logo-img"
+            onerror="this.parentElement.classList.add('hidden'); document.getElementById('auth-logo-fallback').classList.remove('hidden');"
+          />
+        </div>
+        <div id="auth-logo-fallback" class="logo-fallback hidden">O'M</div>
+        <h1 class="auth-title">O'Market</h1>
+        <p class="auth-sub">Connectez-vous pour accéder au marché et à vos courses</p>
+      </div>
+
+      <div class="auth-card">
+        <div id="auth-notice" class="notice err hidden"></div>
+        <form id="auth-form" class="form-col">
+          <label>
+            Numéro de téléphone
+            <input type="tel" id="auth-phone" required autocomplete="tel" />
+          </label>
+          <label>
+            Nom complet (optionnel)
+            <input type="text" id="auth-name" autocomplete="name" />
+          </label>
+          <button type="submit" class="btn btn-primary full-w">Entrer dans O'Market</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- 2. APPLICATION CLIENT APRÈS CONNEXION -->
+    <div id="main-app" class="hidden" style="display: flex; flex-direction: column; flex: 1;">
+      <header class="app-header">
+        <div class="header-left">
+          <img
+            src="./pictures/logo.JPG"
+            alt="O'Market"
+            class="header-logo-img"
+            onerror="this.classList.add('hidden'); document.getElementById('header-logo-fallback').classList.remove('hidden');"
+          />
+          <div id="header-logo-fallback" class="mini-logo-fallback hidden">O'M</div>
+          <div>
+            <h1 class="header-title">O'Market</h1>
+            <p id="session-info" class="header-user"></p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <span id="net-badge" class="status-dot">En ligne</span>
+          <button id="logout-btn" class="btn btn-ghost" type="button" style="padding: 6px 10px; font-size: 0.78rem;">Quitter</button>
+        </div>
+      </header>
+
+      <main class="app-body">
+        <div id="app-notice" class="notice ok hidden"></div>
+        <div id="promo-banners" class="banner-row hidden"></div>
+
+        <!-- VUE VITRINE PAR CATÉGORIES -->
+        <section id="view-shop" class="view active">
+          <div id="category-bar" class="cat-scroller">
+            <button class="cat-pill active" data-cat="all" type="button">Tout</button>
+            <button class="cat-pill" data-cat="promo" type="button">Promos</button>
+          </div>
+
+          <div id="products-list" class="product-grid"></div>
+        </section>
+
+        <!-- VUE LISTE MAGIQUE (TEXTE / VOIX / PHOTO) -->
+        <section id="view-magic" class="view">
+          <div class="card-box">
+            <h3>Liste Magique</h3>
+            <p class="muted" style="margin-top: 0;">Écrivez, dictez ou prenez votre liste en photo pour détecter vos articles.</p>
+
+            <div class="mode-tabs">
+              <button class="mode-tab active" data-mode="text" type="button">Texte</button>
+              <button class="mode-tab" data-mode="voice" type="button">Voix</button>
+              <button class="mode-tab" data-mode="photo" type="button">Photo</button>
+            </div>
+
+            <form id="magic-text-form" class="form-col magic-panel">
+              <label>
+                Liste écrite
+                <textarea id="magic-text" rows="4" required></textarea>
+              </label>
+              <button type="submit" class="btn btn-primary full-w">Analyser la liste</button>
+            </form>
+
+            <div id="magic-voice-panel" class="form-col magic-panel hidden">
+              <div class="voice-box">
+                <button id="voice-btn" class="btn btn-primary" type="button">Démarrer la dictée</button>
+                <p id="voice-status" class="muted" style="margin: 8px 0 0;">Appuyez pour dicter votre liste.</p>
+              </div>
+              <label>
+                Texte reconnu
+                <textarea id="voice-text" rows="3"></textarea>
+              </label>
+              <button id="voice-analyze-btn" class="btn btn-primary full-w" type="button">Analyser la dictée</button>
+            </div>
+
+            <div id="magic-photo-panel" class="form-col magic-panel hidden">
+              <label>
+                Photo de votre liste
+                <input type="file" id="photo-input" accept="image/*" capture="environment" />
+              </label>
+              <img id="photo-preview" class="img-thumb hidden" alt="Aperçu de la liste" />
+              <label>
+                Articles relevés sur la photo
+                <textarea id="photo-text" rows="3"></textarea>
+              </label>
+              <button id="photo-analyze-btn" class="btn btn-primary full-w" type="button">Analyser la liste photo</button>
+            </div>
+
+            <div id="magic-output" class="item-stack hidden" style="margin-top: 12px;"></div>
+          </div>
+        </section>
+
+        <!-- VUE PANIER & PRÉ-PAIEMENT -->
+        <section id="view-cart" class="view">
+          <div class="card-box">
+            <h3>Mon Panier</h3>
+            <div id="cart-lines" class="item-stack"></div>
+
+            <div class="summary-box">
+              <div class="summary-row">
+                <span>Sous-total articles</span>
+                <strong id="sum-subtotal">0 FCFA</strong>
+              </div>
+              <div class="summary-row">
+                <span>Livraison (min. 1 000 FCFA)</span>
+                <strong id="sum-delivery">1 000 FCFA</strong>
+              </div>
+              <div class="summary-row">
+                <span>Frais de service O'Market</span>
+                <strong id="sum-service">100 FCFA</strong>
+              </div>
+              <div class="summary-total">
+                <span>Total à payer</span>
+                <span id="sum-total">0 FCFA</span>
+              </div>
+            </div>
+
+            <form id="checkout-form" class="form-col" style="margin-top: 12px;">
+              <label>
+                Quartier / Adresse de livraison
+                <input type="text" id="ship-address" required />
+              </label>
+              <label>
+                Repère précis pour le livreur
+                <input type="text" id="ship-landmark" required />
+              </label>
+              <label>
+                Moyen de pré-paiement (avant départ du livreur)
+                <select id="ship-payment" required>
+                  <option value="mtn_momo">MTN Mobile Money</option>
+                  <option value="orange_money">Orange Money</option>
+                  <option value="card_international">Carte bancaire / Paiement international</option>
+                </select>
+              </label>
+              <button type="submit" class="btn btn-primary full-w">Valider et pré-payer</button>
+            </form>
+          </div>
+        </section>
+
+        <!-- VUE HISTORIQUE DES COMMANDES -->
+        <section id="view-history" class="view">
+          <div class="card-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+              <h3 style="margin: 0;">Historique de mes achats</h3>
+              <button id="reload-history-btn" class="btn btn-soft" type="button" style="padding: 6px 10px; font-size: 0.78rem;">Actualiser</button>
+            </div>
+            <div id="history-list"></div>
+          </div>
+        </section>
+      </main>
+
+      <nav class="tab-bar" aria-label="Menu principal">
+        <button class="tab-item active" data-target="view-shop" type="button">Vitrine</button>
+        <button class="tab-item" data-target="view-magic" type="button">Liste Magique</button>
+        <button class="tab-item" data-target="view-cart" type="button">Panier (<span id="tab-cart-badge">0</span>)</button>
+        <button class="tab-item" data-target="view-history" type="button">Historique</button>
+      </nav>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = "https://o-market-8eu1.onrender.com";
+    const SERVICE_FEE = 100;
+
+    const state = {
+      user: JSON.parse(localStorage.getItem("om_apk_user") || "null"),
+      categories: [],
+      products: [],
+      banners: [],
+      cart: JSON.parse(localStorage.getItem("om_apk_cart") || "[]"),
+      activeCat: "all"
+    };
+
+    const el = {
+      authGate: document.getElementById("auth-gate"),
+      mainApp: document.getElementById("main-app"),
+      authNotice: document.getElementById("auth-notice"),
+      authForm: document.getElementById("auth-form"),
+      authPhone: document.getElementById("auth-phone"),
+      authName: document.getElementById("auth-name"),
+      sessionInfo: document.getElementById("session-info"),
+      netBadge: document.getElementById("net-badge"),
+      logoutBtn: document.getElementById("logout-btn"),
+      appNotice: document.getElementById("app-notice"),
+      promoBanners: document.getElementById("promo-banners"),
+      categoryBar: document.getElementById("category-bar"),
+      productsList: document.getElementById("products-list"),
+      magicTextForm: document.getElementById("magic-text-form"),
+      magicText: document.getElementById("magic-text"),
+      magicVoicePanel: document.getElementById("magic-voice-panel"),
+      voiceBtn: document.getElementById("voice-btn"),
+      voiceStatus: document.getElementById("voice-status"),
+      voiceText: document.getElementById("voice-text"),
+      voiceAnalyzeBtn: document.getElementById("voice-analyze-btn"),
+      magicPhotoPanel: document.getElementById("magic-photo-panel"),
+      photoInput: document.getElementById("photo-input"),
+      photoPreview: document.getElementById("photo-preview"),
+      photoText: document.getElementById("photo-text"),
+      photoAnalyzeBtn: document.getElementById("photo-analyze-btn"),
+      magicOutput: document.getElementById("magic-output"),
+      cartLines: document.getElementById("cart-lines"),
+      sumSubtotal: document.getElementById("sum-subtotal"),
+      sumDelivery: document.getElementById("sum-delivery"),
+      sumService: document.getElementById("sum-service"),
+      sumTotal: document.getElementById("sum-total"),
+      tabCartBadge: document.getElementById("tab-cart-badge"),
+      checkoutForm: document.getElementById("checkout-form"),
+      shipAddress: document.getElementById("ship-address"),
+      shipLandmark: document.getElementById("ship-landmark"),
+      shipPayment: document.getElementById("ship-payment"),
+      reloadHistoryBtn: document.getElementById("reload-history-btn"),
+      historyList: document.getElementById("history-list")
+    };
+
+    function fmt(val) {
+      return `${Number(val || 0).toLocaleString("fr-FR")} FCFA`;
+    }
+
+    function showAppNotice(msg, kind = "ok") {
+      el.appNotice.textContent = msg;
+      el.appNotice.className = `notice ${kind}`;
+      el.appNotice.classList.remove("hidden");
+      clearTimeout(showAppNotice._t);
+      showAppNotice._t = setTimeout(() => el.appNotice.classList.add("hidden"), 4500);
+    }
+
+    function computeDelivery(addr = "", landmark = "") {
+      const txt = `${addr} ${landmark}`.toLowerCase();
+      const remote = [
+        "soba", "nkolfoulou", "mbalmayo", "ekounou", "odza", "nkolbisson",
+        "ping", "minboman", "ahala", "nkoabang", "simbock", "oyomabang"
+      ];
+      const mid = [
+        "mvan", "emana", "mendong", "etoudi", "essos", "melen",
+        "biyem-assi", "biyem assi", "ekoudou", "nlongkak", "ngousso", "mokolo"
+      ];
+      if (remote.some((k) => txt.includes(k))) return 2000;
+      if (mid.some((k) => txt.includes(k))) return 1500;
+      return 1000;
+    }
+
+    function syncGate() {
+      if (state.user && state.user.id) {
+        el.authGate.classList.add("hidden");
+        el.mainApp.classList.remove("hidden");
+        el.sessionInfo.textContent = state.user.full_name
+          ? `${state.user.full_name} • ${state.user.phone}`
+          : state.user.phone;
+        initShopData();
+      } else {
+        el.mainApp.classList.add("hidden");
+        el.authGate.classList.remove("hidden");
+      }
+    }
+
+    el.authForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      el.authNotice.classList.add("hidden");
+      try {
+        const res = await fetch(`${API_URL}/api/auth/login-register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            phone: el.authPhone.value.trim(),
+            full_name: el.authName.value.trim() || null
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Connexion impossible");
+        state.user = data.user;
+        localStorage.setItem("om_apk_user", JSON.stringify(state.user));
+        syncGate();
+      } catch (err) {
+        el.authNotice.textContent = err.message;
+        el.authNotice.classList.remove("hidden");
+      }
+    });
+
+    el.logoutBtn.addEventListener("click", () => {
+      state.user = null;
+      localStorage.removeItem("om_apk_user");
+      syncGate();
+    });
+
+    async function pingApi() {
+      try {
+        const r = await fetch(`${API_URL}/api/health`);
+        if (!r.ok) throw new Error();
+        el.netBadge.textContent = "En ligne";
+        el.netBadge.className = "status-dot";
+      } catch {
+        el.netBadge.textContent = "Hors ligne";
+        el.netBadge.className = "status-dot off";
+      }
+    }
+
+    async function loadCategories() {
+      try {
+        const r = await fetch(`${API_URL}/api/categories`);
+        if (!r.ok) return;
+        const rows = await r.json();
+        state.categories = Array.isArray(rows) ? rows : [];
+        renderCategories();
+      } catch {}
+    }
+
+    function renderCategories() {
+      el.categoryBar.innerHTML = "";
+      const baseBtns = [
+        { id: "all", label: "Tout" },
+        { id: "promo", label: "Promos" }
+      ];
+      baseBtns.forEach((b) => {
+        const btn = document.createElement("button");
+        btn.className = `cat-pill ${state.activeCat === b.id ? "active" : ""}`;
+        btn.textContent = b.label;
+        btn.type = "button";
+        btn.addEventListener("click", () => {
+          state.activeCat = b.id;
+          renderCategories();
+          renderProducts();
+        });
+        el.categoryBar.appendChild(btn);
+      });
+
+      state.categories.forEach((c) => {
+        const btn = document.createElement("button");
+        btn.className = `cat-pill ${String(state.activeCat) === String(c.id) ? "active" : ""}`;
+        btn.textContent = c.name;
+        btn.type = "button";
+        btn.addEventListener("click", () => {
+          state.activeCat = c.id;
+          renderCategories();
+          renderProducts();
+        });
+        el.categoryBar.appendChild(btn);
+      });
+    }
+
+    async function loadBanners() {
+      try {
+        const r = await fetch(`${API_URL}/api/banners`);
+        if (!r.ok) return;
+        const list = await r.json();
+        const active = (Array.isArray(list) ? list : []).filter((b) => b.is_active !== false);
+        if (!active.length) {
+          el.promoBanners.classList.add("hidden");
+          return;
+        }
+        el.promoBanners.innerHTML = "";
+        active.forEach((b) => {
+          const card = document.createElement("div");
+          card.className = "banner-item";
+          card.innerHTML = `
+            ${b.image_url ? `<img src="${b.image_url}" alt="${b.title || "Promo"}" />` : ""}
+            <div>
+              <strong style="font-size:0.86rem;">${b.title || "Offre O'Market"}</strong>
+              <div class="muted">En vedette</div>
+            </div>
+          `;
+          el.promoBanners.appendChild(card);
+        });
+        el.promoBanners.classList.remove("hidden");
+      } catch {}
+    }
+
+    async function loadProducts() {
+      el.productsList.innerHTML = `<p class="muted">Chargement des rayons...</p>`;
+      try {
+        const r = await fetch(`${API_URL}/api/products`);
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const rows = await r.json();
+        state.products = Array.isArray(rows) ? rows : [];
+        renderProducts();
+      } catch (err) {
+        el.productsList.innerHTML = `<p class="muted">Erreur : ${err.message}</p>`;
+      }
+    }
+
+    function renderProducts() {
+      let list = state.products;
+      if (state.activeCat === "promo") {
+        list = list.filter((p) => Boolean(p.is_sponsored));
+      } else if (state.activeCat !== "all") {
+        list = list.filter((p) => String(p.category_id) === String(state.activeCat));
+      }
+
+      if (!list.length) {
+        el.productsList.innerHTML = `<p class="muted" style="grid-column:1/-1;">Aucun produit dans ce rayon.</p>`;
+        return;
+      }
+
+      el.productsList.innerHTML = "";
+      list.forEach((p) => {
+        const unit = p.unit_label || "unité";
+        const step = Number(p.unit_step || 1);
+        const card = document.createElement("article");
+        card.className = "prod-card";
+        card.innerHTML = `
+          <div>
+            ${p.image_url ? `<img class="prod-img" src="${p.image_url}" alt="${p.name}" loading="lazy" />` : `<div class="prod-img"></div>`}
+            ${p.is_sponsored ? `<span class="promo-tag">Sponsorisé</span>` : ""}
+            <h4 class="prod-name">${p.name}</h4>
+            <div class="prod-unit">Vendu au/à la ${unit} • Stock : ${p.stock ?? 0}</div>
+            <div class="prod-price">${fmt(p.price)} / ${unit}</div>
+            <div class="qty-row">
+              <input type="number" class="p-qty" value="${step}" min="${step}" step="${step}" />
+              <span class="qty-unit-lbl">${unit}</span>
+            </div>
+          </div>
+          <button class="btn btn-primary full-w add-btn" type="button">Ajouter</button>
+        `;
+
+        card.querySelector(".add-btn").addEventListener("click", () => {
+          const q = Number(card.querySelector(".p-qty").value || step);
+          addToCart({
+            product_id: p.id,
+            product_name: p.name,
+            unit_label: unit,
+            unit_price: Number(p.price),
+            quantity: q
+          });
+        });
+
+        el.productsList.appendChild(card);
+      });
+    }
+
+    function saveCart() {
+      localStorage.setItem("om_apk_cart", JSON.stringify(state.cart));
+      renderCart();
+    }
+
+    function addToCart(item) {
+      const same = state.cart.find(
+        (c) => c.product_id === item.product_id && (c.unit_label || "unité") === (item.unit_label || "unité")
+      );
+      if (same) {
+        same.quantity = Number((Number(same.quantity) + Number(item.quantity)).toFixed(3));
+      } else {
+        state.cart.push({ ...item });
+      }
+      saveCart();
+      showAppNotice(`${item.quantity} ${item.unit_label} — ${item.product_name} ajouté.`);
+    }
+
+    function renderCart() {
+      const count = state.cart.reduce((acc, i) => acc + (Number(i.quantity) > 0 ? 1 : 0), 0);
+      el.tabCartBadge.textContent = count;
+
+      if (!state.cart.length) {
+        el.cartLines.innerHTML = `<p class="muted">Votre panier est vide.</p>`;
+        el.sumSubtotal.textContent = fmt(0);
+        el.sumDelivery.textContent = fmt(1000);
+        el.sumService.textContent = fmt(SERVICE_FEE);
+        el.sumTotal.textContent = fmt(0);
+        return;
+      }
+
+      el.cartLines.innerHTML = "";
+      let subtotal = 0;
+
+      state.cart.forEach((item, idx) => {
+        const lineTotal = Number(item.unit_price) * Number(item.quantity);
+        subtotal += lineTotal;
+        const row = document.createElement("div");
+        row.className = "line-card";
+        row.innerHTML = `
+          <div>
+            <strong>${item.product_name}</strong>
+            <div class="muted">${item.quantity} ${item.unit_label || "unité"} × ${fmt(item.unit_price)} = ${fmt(lineTotal)}</div>
+          </div>
+          <button class="btn-danger-link" type="button">Retirer</button>
+        `;
+        row.querySelector("button").addEventListener("click", () => {
+          state.cart.splice(idx, 1);
+          saveCart();
+        });
+        el.cartLines.appendChild(row);
+      });
+
+      const delivery = computeDelivery(el.shipAddress.value, el.shipLandmark.value);
+      const total = subtotal + delivery + SERVICE_FEE;
+
+      el.sumSubtotal.textContent = fmt(subtotal);
+      el.sumDelivery.textContent = fmt(delivery);
+      el.sumService.textContent = fmt(SERVICE_FEE);
+      el.sumTotal.textContent = fmt(total);
+    }
+
+    el.shipAddress.addEventListener("input", renderCart);
+    el.shipLandmark.addEventListener("input", renderCart);
+
+    async function runSmartList(rawText, source = "text") {
+      const txt = (rawText || "").trim();
+      if (!txt) {
+        showAppNotice("Saisissez ou dictez votre liste avant l'analyse.", "err");
+        return;
+      }
+      try {
+        const r = await fetch(`${API_URL}/api/smart-list`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ raw_text: txt, source })
+        });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.detail || "Analyse impossible");
+
+        const items = Array.isArray(data.parsed_items) ? data.parsed_items : [];
+        el.magicOutput.innerHTML = "";
+        el.magicOutput.classList.remove("hidden");
+
+        const head = document.createElement("div");
+        head.className = "line-card";
+        head.innerHTML = `<span><strong>${data.message}</strong></span><strong>${fmt(data.total_estimated)}</strong>`;
+        el.magicOutput.appendChild(head);
+
+        items.forEach((it) => {
+          const row = document.createElement("div");
+          row.className = "line-card";
+          row.innerHTML = `
+            <div>
+              <strong>${it.product_name}</strong>
+              <div class="muted">${it.quantity} ${it.unit_label} × ${fmt(it.unit_price)}</div>
+            </div>
+            <button class="btn btn-soft" type="button">Ajouter</button>
+          `;
+          row.querySelector("button").addEventListener("click", () => {
+            addToCart({
+              product_id: it.product_id,
+              product_name: it.product_name,
+              unit_label: it.unit_label,
+              unit_price: Number(it.unit_price),
+              quantity: Number(it.quantity)
+            });
+          });
+          el.magicOutput.appendChild(row);
+        });
+      } catch (err) {
+        showAppNotice(err.message, "err");
+      }
+    }
+
+    el.magicTextForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      runSmartList(el.magicText.value, "text");
+    });
+
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let rec = null;
+    let listening = false;
+    if (SR) {
+      rec = new SR();
+      rec.lang = "fr-FR";
+      rec.interimResults = true;
+      rec.onstart = () => {
+        listening = true;
+        el.voiceBtn.textContent = "Arrêter";
+        el.voiceStatus.textContent = "Écoute en cours...";
+      };
+      rec.onresult = (ev) => {
+        let out = "";
+        for (let i = 0; i < ev.results.length; i += 1) out += ev.results[i][0].transcript;
+        el.voiceText.value = out;
+      };
+      rec.onend = () => {
+        listening = false;
+        el.voiceBtn.textContent = "Démarrer la dictée";
+        el.voiceStatus.textContent = "Dictée terminée.";
+      };
+    } else {
+      el.voiceStatus.textContent = "Micro non disponible ici ; écrivez dans le champ ci-dessous.";
+    }
+
+    el.voiceBtn.addEventListener("click", () => {
+      if (!rec) return;
+      if (listening) rec.stop();
+      else rec.start();
+    });
+
+    el.voiceAnalyzeBtn.addEventListener("click", () => runSmartList(el.voiceText.value, "voice"));
+
+    el.photoInput.addEventListener("change", (e) => {
+      const f = e.target.files && e.target.files[0];
+      if (!f) return;
+      const rd = new FileReader();
+      rd.onload = () => {
+        el.photoPreview.src = rd.result;
+        el.photoPreview.classList.remove("hidden");
+      };
+      rd.readAsDataURL(f);
+    });
+
+    el.photoAnalyzeBtn.addEventListener("click", () => runSmartList(el.photoText.value, "photo"));
+
+    el.checkoutForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!state.cart.length) {
+        showAppNotice("Votre panier est vide.", "err");
+        return;
+      }
+
+      const payload = {
+        user_id: state.user?.id || null,
+        delivery_address: el.shipAddress.value.trim(),
+        landmark: `${el.shipLandmark.value.trim()} | Pré-paiement : ${el.shipPayment.value}`,
+        items: state.cart.map((c) => ({
+          product_id: c.product_id,
+          product_name: c.product_name,
+          quantity: c.quantity,
+          unit_label: c.unit_label || "unité"
+        }))
+      };
+
+      try {
+        const r = await fetch(`${API_URL}/api/orders`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.detail || "Commande refusée");
+
+        state.cart = [];
+        saveCart();
+        el.checkoutForm.reset();
+        showAppNotice(
+          `Commande #${data.order_id} créée (${fmt(data.total_amount)}). Pré-paiement requis avant départ du livreur.`
+        );
+        loadHistory();
+      } catch (err) {
+        showAppNotice(err.message, "err");
+      }
+    });
+
+    async function loadHistory() {
+      if (!state.user?.id) return;
+      el.historyList.innerHTML = `<p class="muted">Chargement de l'historique...</p>`;
+      try {
+        const r = await fetch(`${API_URL}/api/my-orders?user_id=${state.user.id}`);
+        if (!r.ok) throw new Error("Historique indisponible");
+        const orders = await r.json();
+        if (!Array.isArray(orders) || !orders.length) {
+          el.historyList.innerHTML = `<p class="muted">Aucune commande enregistrée.</p>`;
+          return;
+        }
+        el.historyList.innerHTML = "";
+        orders.forEach((o) => {
+          const div = document.createElement("div");
+          div.className = "order-history-card";
+          div.innerHTML = `
+            <div style="display:flex; justify-content:space-between;">
+              <strong>Commande #${o.id}</strong>
+              <strong>${fmt(o.total_amount)}</strong>
+            </div>
+            <div class="muted">Statut : ${o.status} • Paiement : ${o.payment_status}</div>
+            <div class="muted">Zone ${o.delivery_zone} : Articles ${fmt(o.items_subtotal)} + Livraison ${fmt(o.delivery_fee)} + Frais ${fmt(o.service_fee)}</div>
+          `;
+          el.historyList.appendChild(div);
+        });
+      } catch (err) {
+        el.historyList.innerHTML = `<p class="muted">${err.message}</p>`;
+      }
+    }
+
+    document.querySelectorAll(".mode-tab").forEach((t) => {
+      t.addEventListener("click", () => {
+        document.querySelectorAll(".mode-tab").forEach((x) => x.classList.remove("active"));
+        t.classList.add("active");
+        const m = t.dataset.mode;
+        el.magicTextForm.classList.toggle("hidden", m !== "text");
+        el.magicVoicePanel.classList.toggle("hidden", m !== "voice");
+        el.magicPhotoPanel.classList.toggle("hidden", m !== "photo");
+      });
+    });
+
+    document.querySelectorAll(".tab-item").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const target = btn.dataset.target;
+        document.querySelectorAll(".tab-item").forEach((b) => b.classList.remove("active"));
+        document.querySelectorAll(".view").forEach((v) => v.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById(target).classList.add("active");
+        if (target === "view-history") loadHistory();
+      });
+    });
+
+    el.reloadHistoryBtn.addEventListener("click", loadHistory);
+
+    function initShopData() {
+      renderCart();
+      pingApi();
+      loadCategories();
+      loadBanners();
+      loadProducts();
+      loadHistory();
+    }
+
+    syncGate();
+  </script>
+</body>
+</html>

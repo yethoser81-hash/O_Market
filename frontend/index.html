@@ -5,6 +5,120 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>O'Market — Courses &amp; Marché</title>
   <link rel="stylesheet" href="./styles.css" />
+  <style>
+    .catalog-toolbar {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .category-pills {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .cat-btn {
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text-main);
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.86rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .cat-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .cat-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+      box-shadow: 0 3px 10px rgba(13, 122, 74, 0.2);
+    }
+
+    .category-group {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      box-shadow: var(--shadow);
+      margin-bottom: 18px;
+    }
+
+    .category-group-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+      padding-bottom: 12px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .category-group-title {
+      margin: 0;
+      font-size: 1.08rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .category-count {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--bg-subtle);
+      padding: 4px 10px;
+      border-radius: 999px;
+    }
+
+    .cards-grid {
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 16px;
+    }
+
+    .product-card {
+      border-radius: 14px;
+      padding: 14px;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .product-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 22px rgba(22, 32, 42, 0.09);
+    }
+
+    .product-card img {
+      height: 142px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+
+    .product-meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+
+    .badge-category {
+      display: inline-block;
+      background: var(--ok-bg);
+      color: var(--ok-text);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+  </style>
 </head>
 <body>
   <header class="topbar">
@@ -13,7 +127,7 @@
         <span class="brand-badge">O'M</span>
         <div>
           <h1>O'Market</h1>
-          <p class="subtitle">Catalogue, liste intelligente &amp; commande</p>
+          <p class="subtitle">Catalogue par rayons, liste intelligente &amp; commande</p>
         </div>
       </div>
 
@@ -40,11 +154,18 @@
     <section id="catalog-section" class="tab-panel active">
       <div class="grid-two-col">
         <div>
-          <div class="section-head">
-            <h2>Catalogue Produits</h2>
-            <button id="refresh-products-btn" class="btn btn-light" type="button">Actualiser</button>
+          <div class="catalog-toolbar">
+            <div class="section-head" style="margin-bottom: 0;">
+              <h2>Catalogue Produits par Catégorie</h2>
+              <button id="refresh-products-btn" class="btn btn-light" type="button">Actualiser</button>
+            </div>
+            <div id="category-filters" class="category-pills" role="tablist" aria-label="Filtres par catégorie">
+              <button class="cat-btn active" data-category="all" type="button">Toutes les catégories</button>
+              <button class="cat-btn" data-category="promo" type="button">Promotions</button>
+            </div>
           </div>
-          <div id="products-list" class="cards-grid"></div>
+
+          <div id="products-list"></div>
         </div>
 
         <aside class="panel cart-panel">
@@ -107,5 +228,196 @@
   </div>
 
   <script src="./app.js"></script>
+  <script>
+    (function enhanceCatalogByCategory() {
+      const filtersBar = document.getElementById("category-filters");
+      const productsContainer = document.getElementById("products-list");
+      if (!filtersBar || !productsContainer) return;
+
+      let selectedCategory = "all";
+      let categoriesMap = new Map();
+      let categoriesList = [];
+
+      function formatFcfaLocal(amount) {
+        return `${Number(amount || 0).toLocaleString("fr-FR")} FCFA`;
+      }
+
+      function renderFilterButtons() {
+        filtersBar.innerHTML = "";
+
+        const allBtn = document.createElement("button");
+        allBtn.type = "button";
+        allBtn.className = `cat-btn ${selectedCategory === "all" ? "active" : ""}`;
+        allBtn.dataset.category = "all";
+        allBtn.textContent = "Toutes les catégories";
+        allBtn.addEventListener("click", () => {
+          selectedCategory = "all";
+          renderFilterButtons();
+          renderGroupedCatalog();
+        });
+        filtersBar.appendChild(allBtn);
+
+        const promoBtn = document.createElement("button");
+        promoBtn.type = "button";
+        promoBtn.className = `cat-btn ${selectedCategory === "promo" ? "active" : ""}`;
+        promoBtn.dataset.category = "promo";
+        promoBtn.textContent = "Promotions";
+        promoBtn.addEventListener("click", () => {
+          selectedCategory = "promo";
+          renderFilterButtons();
+          renderGroupedCatalog();
+        });
+        filtersBar.appendChild(promoBtn);
+
+        categoriesList.forEach((cat) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          const key = String(cat.id);
+          btn.className = `cat-btn ${selectedCategory === key ? "active" : ""}`;
+          btn.dataset.category = key;
+          btn.textContent = cat.name;
+          btn.addEventListener("click", () => {
+            selectedCategory = key;
+            renderFilterButtons();
+            renderGroupedCatalog();
+          });
+          filtersBar.appendChild(btn);
+        });
+      }
+
+      function buildProductCard(p, catName) {
+        const unitLabel = p.unit_label || "unité";
+        const step = Number(p.unit_step || 1);
+        const card = document.createElement("article");
+        card.className = "product-card";
+
+        const imgHtml = p.image_url
+          ? `<img src="${p.image_url}" alt="${p.name}" loading="lazy" />`
+          : "";
+        const sponsorHtml = p.is_sponsored
+          ? `<span class="badge-sponsored">Promotion</span>`
+          : "";
+
+        card.innerHTML = `
+          <div>
+            ${imgHtml}
+            <div class="product-meta-row">
+              <span class="badge-category">${catName}</span>
+              ${sponsorHtml}
+            </div>
+            <h3 class="product-title">${p.name}</h3>
+            <div class="product-price">${formatFcfaLocal(p.price)} / ${unitLabel}</div>
+            ${p.description ? `<div class="hint">${p.description}</div>` : ""}
+            <div class="hint">Stock : ${p.stock ?? 0}</div>
+            <label style="margin-top: 8px; font-size: 0.82rem;">
+              Quantité (${unitLabel})
+              <input type="number" class="qty-input" value="${step}" min="${step}" step="${step}" />
+            </label>
+          </div>
+          <button class="btn btn-primary full-width add-cart-btn" type="button">Ajouter au panier</button>
+        `;
+
+        card.querySelector(".add-cart-btn").addEventListener("click", () => {
+          const chosenQty = Number(card.querySelector(".qty-input").value || step);
+          if (typeof addToCart === "function") {
+            addToCart({
+              product_id: p.id,
+              product_name: p.name,
+              unit_label: unitLabel,
+              unit_price: Number(p.price),
+              quantity: chosenQty
+            });
+          }
+        });
+
+        return card;
+      }
+
+      function renderGroupedCatalog() {
+        const allProducts = Array.isArray(window.state?.products) ? window.state.products : [];
+        let filtered = allProducts;
+
+        if (selectedCategory === "promo") {
+          filtered = allProducts.filter((p) => Boolean(p.is_sponsored));
+        } else if (selectedCategory !== "all") {
+          filtered = allProducts.filter((p) => String(p.category_id ?? "") === selectedCategory);
+        }
+
+        if (!filtered.length) {
+          productsContainer.innerHTML = `<div class="category-group"><p class="empty-state">Aucun produit dans cette catégorie.</p></div>`;
+          return;
+        }
+
+        const groups = new Map();
+        filtered.forEach((p) => {
+          const catKey = p.category_id != null ? String(p.category_id) : "uncategorized";
+          const catName =
+            p.category_id != null && categoriesMap.has(String(p.category_id))
+              ? categoriesMap.get(String(p.category_id))
+              : "Autres articles";
+
+          if (!groups.has(catKey)) {
+            groups.set(catKey, { name: catName, items: [] });
+          }
+          groups.get(catKey).items.push(p);
+        });
+
+        productsContainer.innerHTML = "";
+        groups.forEach((group) => {
+          const section = document.createElement("section");
+          section.className = "category-group";
+
+          const head = document.createElement("div");
+          head.className = "category-group-head";
+          head.innerHTML = `
+            <h3 class="category-group-title">${group.name}</h3>
+            <span class="category-count">${group.items.length} article${group.items.length > 1 ? "s" : ""}</span>
+          `;
+
+          const grid = document.createElement("div");
+          grid.className = "cards-grid";
+          group.items.forEach((prod) => {
+            grid.appendChild(buildProductCard(prod, group.name));
+          });
+
+          section.appendChild(head);
+          section.appendChild(grid);
+          productsContainer.appendChild(section);
+        });
+      }
+
+      async function fetchCategoriesAndRefresh() {
+        try {
+          const res = await fetch(`${API_BASE_URL}/api/categories`);
+          if (res.ok) {
+            const data = await res.json();
+            categoriesList = Array.isArray(data) ? data : [];
+            categoriesMap = new Map(categoriesList.map((c) => [String(c.id), c.name]));
+          }
+        } catch {
+          // Conserve les catégories déjà chargées le cas échéant
+        }
+        renderFilterButtons();
+        renderGroupedCatalog();
+      }
+
+      const originalRenderProducts = window.renderProducts;
+      window.renderProducts = function wrappedRenderProducts() {
+        if (typeof originalRenderProducts === "function") {
+          originalRenderProducts();
+        }
+        renderGroupedCatalog();
+      };
+
+      const refreshBtn = document.getElementById("refresh-products-btn");
+      if (refreshBtn) {
+        refreshBtn.addEventListener("click", () => {
+          setTimeout(fetchCategoriesAndRefresh, 150);
+        });
+      }
+
+      fetchCategoriesAndRefresh();
+    })();
+  </script>
 </body>
 </html>
